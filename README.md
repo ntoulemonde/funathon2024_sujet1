@@ -17,11 +17,10 @@ Liens des différentes API isochrones :
 https://docs.mapbox.com/playground/isochrone/
 Pas de mode "train" disponible
 
+https://apidocs.geoapify.com/playground/isoline/
+Pas de mode "train" et nombre de crédits gratuits limité (que 55 requêtes à 4h30)
+
 https://playground.traveltime.com/isochrones
 Temps de l'isochrone de 4h00 au maximum
-
-https://apidocs.geoapify.com/playground/isoline/
-Ca semble bon mais nombre de crédits gratuits limité (que 55 requêtes à 4h30)
-A tester
 
 
