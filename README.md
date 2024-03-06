@@ -1,4 +1,4 @@
-# Funathon 2024 - Sujet 1
+# Funathon 2024 - Sujet 1 :star:
 
 Visualiser le trafic et/ou les émissions de C02 liées à une mesure de restriction de liaison aérienne relativement à des isochrones en trajet ferroviaire.
 
