@@ -4,7 +4,7 @@ Visualiser le trafic et/ou les émissions de C02 liées à une mesure de restric
 
 ## Grandes parties
 
-1. A partir des liaisons aériennes supprimées par la mesure 2h30, calculer le trafic théorique et les émissions impactées théoriques (si toutes les liaisons avaient été supprimées). Visualiser les différentes liaisons supprimées sur une carte de la France. Les traits seront d'une couleur différente selon le trafic et/ou les émissions de CO2 impacté.
+1. A partir des liaisons aériennes supprimées par la mesure 2h30, calculer le trafic théorique et les émissions impactées théoriques (si toutes les liaisons avaient été supprimées). Visualiser avec le package _leaflet_ les différentes liaisons supprimées sur une carte de la France. Les traits seront d'une couleur différente selon le trafic et/ou les émissions de CO2 impacté.
 
 2. Faire la même chose selon une mesure hypothétique des 4h30 :
    - Récupérer les liaisons impactées via une API qui calcule les isochrones train (gare à gare)
@@ -17,6 +17,8 @@ Visualiser le trafic et/ou les émissions de C02 liées à une mesure de restric
 ## Remarques
 
 Partie 4 vraiment utile ?
+
+Voir test de _leaflet_ [ici](https://github.com/ThomLecha/TestDeDataVisualisation)
 
 ### API isochrones
 Liens des différentes API isochrones :
