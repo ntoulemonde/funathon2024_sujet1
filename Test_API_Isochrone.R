@@ -1,5 +1,6 @@
-X_Api_Id <- "c32b3037"
-X_Api_Key <- "c0c067d7cddbdb9acbd6389ef5b73aae"
+#Mettre ses codes après inscription sur traveltime.com
+X_Api_Id <- "-"
+X_Api_Key <- "-"
 
 #Fonction qui envoie un requêtes avec un JSON à un endpoint donné
 API_isochrones_Test <- function(url, json){
