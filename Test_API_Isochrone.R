@@ -1,14 +1,14 @@
-#Fonction qui envoie un requêtes avec un JSON à un endpoint donné
-#Entrée:
-#   - url: l'endpoint de l'API
-#   - json: le JSON à envoyer
-#Sortie:
-#   - la réponse de l'API
-#   - le code de la réponse
+X_Api_Id <- "c32b3037"
+X_Api_Key <- "c0c067d7cddbdb9acbd6389ef5b73aae"
 
+#Fonction qui envoie un requêtes avec un JSON à un endpoint donné
 API_isochrones_Test <- function(url, json){
-  #Envoie de la requête
-  response <- httr::POST(url, body = json, encode = "json")
+  # On prépare les headers
+  headers <- httr::add_headers("Content-Type" = "application/json",
+                               "X-Application-Id" = X_Api_Id,
+                               "X-Api-Key" = X_Api_Key)
+  # On envoie la requête avec les headers spécifiés
+  response <- httr::POST(url, body = json, encode = "json", headers)
   #Récupération du contenu de la réponse
   content <- httr::content(response)
   #Récupération du code de la réponse
@@ -38,3 +38,5 @@ json <- '{
 
 
 result <- API_isochrones_Test(url, json)
+
+result
