@@ -30,6 +30,8 @@ https://apidocs.geoapify.com/playground/isoline/
 Pas de mode "train" disponible et nombre de crédits gratuits limité (que 55 requêtes à 4h30)
 
 https://playground.traveltime.com/isochrones
-Temps de l'isochrone de 4h00 au maximum
+Temps de l'isochrone de 4h00 au maximum et le train ne passe pas les frontières
+
+:warning: Trouver une autre API !
 
 
