@@ -27,13 +27,25 @@ url <- "https://api.traveltimeapp.com/v4/time-map"
 # Date et heure : 2024-03-07 à 18h00 UTC
 # Flexibilité : 2h00
 
+# Autres coordonnées :
+# Paris : (48.8534, 2.3483),
+# Marseille : (43.2965, 5.3698),
+# Lyon : (45.7640, 4.8357),
+# Toulouse : (43.6045, 1.4440),
+# Nice : (43.7102, 7.2620),
+# Nantes : (47.2184, -1.5536),
+# Strasbourg : (48.5734, 7.7521),
+# Montpellier : (43.6108, 3.8767),
+# Bordeaux : (44.8378, -0.5792),
+# Lille : (50.6292, 3.0573)
+
 json <- '{
   "departure_searches": [
     {
       "id": "isochrone-0",
       "coords": {
-        "lat": 48.8534951,
-        "lng": 2.3483915
+        "lat": 48.8534,
+        "lng": 2.3483
       },
       "departure_time": "2024-03-07T18:00:00.000Z",
       "travel_time": 14400,
@@ -55,7 +67,7 @@ json <- '{
       "no_holes": false,
       "range": {
         "enabled": true,
-        "width": 7200
+        "width": 43200
       }
     }
   ]
