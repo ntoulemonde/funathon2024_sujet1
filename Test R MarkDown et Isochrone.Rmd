@@ -1,0 +1,172 @@
+# Funathon 2024 - Sujet 1
+
+## Interaction avec l'API d'isochrones de TravelTime
+
+On créé une fonction qui envoie une requête contenant un JSON à l'endpoint de l'API d'isochrones de TravelTime grâce à la bibliothèque "httr"
+
+```{r}
+library(httr)
+ISOCHRONE_API_URL <- "https://api.traveltimeapp.com/v4/time-map"
+X_API_ID <- "c32b3037"
+X_API_KEY <- "c0c067d7cddbdb9acbd6389ef5b73aae"
+
+getIsochroneAPIResponse <- function(json){
+  # On prépare les headers
+  headers <- httr::add_headers("Content-Type" = "application/json",
+                               "X-Application-Id" = X_API_ID,
+                               "X-Api-Key" = X_API_KEY)
+  # On envoie la requête avec les headers spécifiés
+  response <- httr::POST(ISOCHRONE_API_URL, body = json, encode = "json", headers)
+  # On récupère le contenu de la réponse
+  content <- httr::content(response)
+  # On récupère le code de la réponse
+  code <- httr::status_code(response)
+  return(list(content, code))
+}
+```
+
+On créé un JSON à partir de la documentation de l'API (playground intuitif disponible [ici](https://playground.traveltime.com/isochrones)) avec les caractéristiques suivantes :
+
+-   Lieu : Centre de Paris
+
+-   Isochrone : 1h00
+
+-   Mode de transport : Transport public (bus, métro, tram, train)
+
+-   Date et heure : 2024-07-07 à 18h00 UTC
+
+-   Flexibilité : 1h00
+
+```{r}
+json <- '{
+  "departure_searches": [
+    {
+      "id": "isochrone-0",
+      "coords": {
+        "lat": 48.8534,
+        "lng": 2.3483
+      },
+      "departure_time": "2024-03-07T18:00:00.000Z",
+      "travel_time": 3600,
+      "transportation": {
+        "type": "public_transport",
+        "walking_time": 900,
+        "cycling_time_to_station": 100,
+        "parking_time": 0,
+        "boarding_time": 0,
+        "driving_time_to_station": 1800,
+        "pt_change_delay": 0,
+        "disable_border_crossing": false
+      },
+      "level_of_detail": {
+        "scale_type": "simple",
+        "level": "medium"
+      },
+      "single_shape": false,
+      "no_holes": false,
+      "range": {
+        "enabled": true,
+        "width": 3600
+      }
+    }
+  ]
+}'
+```
+
+On questionne l'API avec la fonction et le json, et on regarde le contenu de la réponse de l'API
+
+```{r}
+response <- getIsochroneAPIResponse(json)
+View(response)
+```
+
+Après observation de la réponse, on extrait les données utile de la réponse de l'API
+
+```{r}
+apiData <- response[[1]]$results[[1]]$shapes
+View(apiData)
+
+```
+
+Après observation des données, on extrait le premier polygone de l'isochrone
+
+```{r}
+# On extrait le premier polygone de l'isochrone
+rawShape1 <- apiData[[1]]$shell
+# On initialise un dataframe vide
+shape1 <- data.frame(lat = numeric(), lng = numeric())
+# On parcourt chaque élément de rawShape1 pour le transformer en dataframe
+for(currentPoint in rawShape1) {
+  # On ajoute les coordonnées du point courant à shape1
+  shape1 <- rbind(shape1, data.frame(lat = currentPoint$lat, lng = currentPoint$lng))
+}
+shape1
+```
+
+On extrait tous les polygones de l'isochrone dans une liste en faisant une boucle du code précédent
+
+```{r}
+shapeList <- list()
+# On boucle sur chaque polygone de l'isochrone
+for (i in 1:length(apiData)){
+  
+  
+  # On extrait le n-ième polygone de l'isochrone
+  rawShape <- response[[1]]$results[[1]]$shapes[[i]]$shell
+  # On initialise un dataframe vide
+  shape <- data.frame(lat = numeric(), lng = numeric())
+  # On parcourt chaque élément de rawShape pour le transformer en dataframe
+  for(currentPoint in rawShape) {
+    # On ajoute les coordonnées du point courant à shape
+    shape <- rbind(shape, data.frame(lat = currentPoint$lat, lng = currentPoint$lng))
+  }
+  
+  
+  # On ajoute le polygone à la liste
+  shapeList[[length(shapeList)+1]] <- shape
+}
+```
+
+## Affichage de la carte et de l'isochrone avec le package leaflet
+
+On entre la clé API de Stadia Maps (créér un compte [ici](https://client.stadiamaps.com/signup/?utm_content=top_nav_signup&utm_source=marketing_site)) et on entre les liens des tuiles Stadia Maps pour les fonds de carte (autres URL de fonds de carte [ici](https://stadiamaps.com/themes/))
+
+```{r}
+STADIA_MAPS_API_KEY <- "e6f6cfad-a662-4589-b060-1d7eed6d88a3"
+
+ALIDADE_SMOOTH_TILES_URL <- "https://tiles.stadiamaps.com/tiles/alidade_smooth/{z}/{x}/{y}{r}.png?api_key="
+OUTDOORS_TILES_URL <- "https://tiles.stadiamaps.com/tiles/outdoors/{z}/{x}/{y}{r}.png?api_key="
+ALIDADE_SATELLITE_TILES_URL <- "https://tiles.stadiamaps.com/tiles/alidade_satellite/{z}/{x}/{y}{r}.png?api_key="
+
+# On passe la clé API dans les URL des tuiles
+TILES_URL <- paste0(ALIDADE_SMOOTH_TILES_URL, STADIA_MAPS_API_KEY)
+
+```
+
+On créé une carte de base avec le fond de carte Stadia Maps
+
+```{r}
+leafletMap <- leaflet() %>%
+  addTiles(urlTemplate = TILES_URL)
+
+```
+
+On boucle pour ajouter chaque polygone de shapeList à la carte
+
+```{r}
+for (s in shapeList) {
+  leafletMap <- leafletMap %>% addPolygons(data = s, 
+                                           ~lng, ~lat, 
+                                           color = "#FF0000", 
+                                           fillColor = "#FFAAAA", 
+                                           fillOpacity = 0.5, 
+                                           weight = 2)
+}
+
+```
+
+On affiche la carte
+
+```{r, echo=FALSE}
+leafletMap
+```
