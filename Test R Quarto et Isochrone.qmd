@@ -82,7 +82,7 @@ response <- getTraveltimeAPIResponse(ISOCHRONE_API_URL, json)
 View(response)
 ```
 
-Après observation de la réponse, on extrait les données utile de la réponse de l'API
+Après observation de la réponse, on extrait les données utiles de la réponse de l'API
 
 ```{r}
 apiData <- response[[1]]$results[[1]]$shapes
@@ -172,6 +172,208 @@ On affiche la carte
 ```{r}
 leafletMap
 ```
+
+## Interaction avec l'API de routage de TravelTime
+
+On créé un JSON à partir de la documentation de l'API (playground disponible [ici](https://playground.traveltime.com/routes)) avec les caractéristiques suivantes :
+
+-   Lieu de départ : Paris (48.8534, 2.3483)
+
+-   Lieu d'arrivée : Toulouse (43.6044, 1.4442)
+
+-   Mode de transport : Transport public (bus, métro, tram, train)
+
+-   Date et heure : 2024-03-07 à 18h00 UTC
+
+-   Flexibilité : 12h00
+
+-   Le reste des paramètres par défaut
+
+```{r}
+json <- '{
+  "locations": [
+    {
+      "id": "point-from",
+      "coords": {
+        "lat": 48.8534,
+        "lng": 2.3483
+      }
+    },
+    {
+      "id": "point-to-1",
+      "coords": {
+        "lat": 43.6044,
+        "lng": 1.4442
+      }
+    }
+  ],
+  "departure_searches": [
+    {
+      "id": "departure-search",
+      "transportation": {
+        "type": "public_transport",
+        "walking_time": 900,
+        "cycling_time_to_station": 100,
+        "parking_time": 0,
+        "boarding_time": 0,
+        "driving_time_to_station": 1800,
+        "pt_change_delay": 0,
+        "disable_border_crossing": false
+      },
+      "departure_location_id": "point-from",
+      "arrival_location_ids": [
+        "point-to-1"
+      ],
+      "departure_time": "2024-03-07T18:00:00.000Z",
+      "properties": [
+        "travel_time",
+        "route"
+      ],
+      "range": {
+        "enabled": true,
+        "max_results": 5,
+        "width": 43200
+      }
+    }
+  ]
+}'
+```
+
+On questionne l'API avec la fonction, et le json, et on regarde le contenu de la réponse de l'API
+
+```{r}
+ROUTES_API_URL <- "https://api.traveltimeapp.com/v4/routes"
+
+response <- getTraveltimeAPIResponse(ROUTES_API_URL, json)
+View(response)
+```
+
+Après observation de la réponse, on extrait les données utiles de la réponse de l'API
+
+```{r}
+apiData <- response[[1]]$results[[1]]$locations[[1]]$properties
+View(apiData)
+```
+
+## Coordonnées des villes françaises
+
+On utilise le package "osmdata" pour récupérer les coordonnées des villes françaises qui nous intéressent
+
+```{r}
+# On installe et on importe le package "osmdata"
+install.packages("osmdata")
+library(osmdata)
+
+CITY_NAME <- "Lille"
+
+# On obtient les coordonnées de la ville
+coordinates <-  rowMeans(getbb(paste0(CITY_NAME,", France")))
+coordinates
+
+# On constate que la latitude et la longitude sont inversées, on les inverse
+coordinates <- rev(coordinates)
+names(coordinates) <- c("lat", "lng")
+coordinates
+
+```
+On fait une fonction
+```{r}
+getCityCoordinates <- function(city){
+  # On obtient les coordonnées de la ville
+  coordinates <-  rowMeans(getbb(paste0(city,", France")))
+  # On constate que la latitude et la longitude sont inversées, on les inverse
+  coordinates <- rev(coordinates)
+  names(coordinates) <- c("lat", "lng")
+  return(coordinates)
+}
+```
+
+## Temps de transport entre 2 villes
+
+On créé une fonction qui prend en paramètre les noms de 2 villes et qui renvoie le temps de transport en heure entre ces 2 villes
+
+```{r}
+getTravelTimeBetweenCities <- function(city1, city2){
+  # On récupère les coordonnées des villes
+  coordinates1 <- getCityCoordinates(city1)
+  coordinates2 <- getCityCoordinates(city2)
+  
+  # On créé le JSON pour l'API de routage en se basant sur celui de la sous-partie "Interaction avec l'API de routage de TravelTime"
+  json <- paste0('{
+  "locations": [
+    {
+      "id": "point-from",
+      "coords": {
+        "lat": ', coordinates1[1], ',
+        "lng": ', coordinates1[2], '
+      }
+    },
+    {
+      "id": "point-to-1",
+      "coords": {
+        "lat": ', coordinates2[1], ',
+        "lng": ', coordinates2[2], '
+      }
+    }
+  ],
+  "departure_searches": [
+    {
+      "id": "departure-search",
+      "transportation": {
+        "type": "public_transport",
+        "walking_time": 900,
+        "cycling_time_to_station": 100,
+        "parking_time": 0,
+        "boarding_time": 0,
+        "driving_time_to_station": 1800,
+        "pt_change_delay": 0,
+        "disable_border_crossing": false
+      },
+      "departure_location_id": "point-from",
+      "arrival_location_ids": [
+        "point-to-1"
+      ],
+      "departure_time": "2024-03-07T18:00:00.000Z",
+      "properties": [
+        "travel_time",
+        "route"
+      ],
+      "range": {
+        "enabled": true,
+        "max_results": 5,
+        "width": 43200
+      }
+    }
+  ]
+}')
+  
+  # On questionne l'API de routage avec le json
+  response <- getTraveltimeAPIResponse(ROUTES_API_URL, json)
+  
+  # On extrait les données utiles
+  apiData <- response[[1]]$results[[1]]$locations[[1]]$properties
+  
+  # On boucle sur apiData pour récupérer les temps de trajet
+  travelTimes <- c()
+  for (i in 1:length(apiData)){
+    # On convertit le temps de trajet en heures et on l'ajoute à travelTimes
+    travelTime <- apiData[[i]]$travel_time / 3600
+    travelTimes <- c(travelTimes, travelTime)
+  }
+  
+  return(travelTimes)
+}
+```
+
+On teste la fonction avec Toulouse et Montpellier
+
+```{r}
+timeTravels <- getTravelTimeBetweenCities("Toulouse", "Montpellier")
+timeTravels
+```
+
+
+# Code annexe
 
 ## Interaction avec l'API de matrices temporelles de TravelTime
 
@@ -282,91 +484,9 @@ response <- getTraveltimeAPIResponse(TIME_MATRIX_API_URL, json)
 View(response)
 ```
 
-Après observation de la réponse, on extrait les données utile de la réponse de l'API
+Après observation de la réponse, on extrait les données utiles de la réponse de l'API
 
 ```{r}
 apiData <- response[[1]]$results[[1]]
-View(apiData)
-```
-
-## Interaction avec l'API de routage de TravelTime
-
-On créé un JSON à partir de la documentation de l'API (playground disponible [ici](https://playground.traveltime.com/routes)) avec les caractéristiques suivantes :
-
--   Lieu de départ : Paris (48.8534, 2.3483)
-
--   Lieu d'arrivée : Toulouse (43.6044, 1.4442)
-
--   Mode de transport : Transport public (bus, métro, tram, train)
-
--   Date et heure : 2024-03-07 à 18h00 UTC
-
--   Flexibilité : 12h00
-
--   Le reste des paramètres par défaut
-
-```{r}
-json <- '{
-  "locations": [
-    {
-      "id": "point-from",
-      "coords": {
-        "lat": 48.8534,
-        "lng": 2.3483
-      }
-    },
-    {
-      "id": "point-to-1",
-      "coords": {
-        "lat": 43.6044,
-        "lng": 1.4442
-      }
-    }
-  ],
-  "departure_searches": [
-    {
-      "id": "departure-search",
-      "transportation": {
-        "type": "public_transport",
-        "walking_time": 900,
-        "cycling_time_to_station": 100,
-        "parking_time": 0,
-        "boarding_time": 0,
-        "driving_time_to_station": 1800,
-        "pt_change_delay": 0,
-        "disable_border_crossing": false
-      },
-      "departure_location_id": "point-from",
-      "arrival_location_ids": [
-        "point-to-1"
-      ],
-      "departure_time": "2024-03-07T18:00:00.000Z",
-      "properties": [
-        "travel_time",
-        "route"
-      ],
-      "range": {
-        "enabled": true,
-        "max_results": 5,
-        "width": 43200
-      }
-    }
-  ]
-}'
-```
-
-On questionne l'API avec la fonction, et le json, et on regarde le contenu de la réponse de l'API
-
-```{r}
-ROUTES_API_URL <- "https://api.traveltimeapp.com/v4/routes"
-
-response <- getTraveltimeAPIResponse(ROUTES_API_URL, json)
-View(response)
-```
-
-Après observation de la réponse, on extrait les données utile de la réponse de l'API
-
-```{r}
-apiData <- response[[1]]$results[[1]]$locations[[1]]$properties
 View(apiData)
 ```
