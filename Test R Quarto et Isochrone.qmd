@@ -2,7 +2,7 @@
 
 ## Interaction avec l'API de TravelTime
 
-On créé une fonction qui envoie une requête contenant un JSON à l'endpoint d'une API de TravelTime grâce à la bibliothèque "httr"
+On crée une fonction qui envoie une requête contenant un JSON à l'endpoint d'une API de TravelTime grâce à la bibliothèque "httr"
 
 ```{r}
 library(httr)
@@ -276,7 +276,9 @@ names(coordinates) <- c("lat", "lng")
 coordinates
 
 ```
+
 On fait une fonction
+
 ```{r}
 getCityCoordinates <- function(city){
   # On obtient les coordonnées de la ville
@@ -368,10 +370,20 @@ getTravelTimeBetweenCities <- function(city1, city2){
 On teste la fonction avec Toulouse et Montpellier
 
 ```{r}
-timeTravels <- getTravelTimeBetweenCities("Toulouse", "Montpellier")
+timeTravels <- getTravelTimeBetweenCities("Toulouse", "Paris")
 timeTravels
 ```
 
+```{q-interact}
+# On créé des champs de saisie pour les villes
+city1 = qinput(label="Ville1 :", value="Ville1")
+city2 = qinput(label="Ville2 :", value="Ville2")
+```
+
+```{r}
+timeTravels <- getTravelTimeBetweenCities(city1, city2)
+timeTravels
+```
 
 # Code annexe
 
