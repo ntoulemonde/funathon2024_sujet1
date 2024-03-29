@@ -6,8 +6,8 @@ format:
     number-sections: true
 editor: visual
 editor_options: 
-  chunk_output_type: console
---- 
+  chunk_output_type: inline
+---
 
 # Funathon 2024 - Sujet 1
 
@@ -296,7 +296,7 @@ coordinates
 
 ```
 
-On fait une fonction
+On fait une fonction qui renvoie les coordonnées d'une ville à partir de ce nom
 
 ```{r}
 getCityCoordinates <- function(city, verbose = TRUE){
@@ -404,10 +404,10 @@ getTravelTimeBetweenCities <- function(city1, city2, verbose = TRUE){
 }
 ```
 
-On teste la fonction avec Toulouse et Montpellier
+On teste la fonction avec Toulouse et Paris
 
 ```{r}
-timeTravels <- getTravelTimeBetweenCities("Toulouse", "Lille")
+timeTravels <- getTravelTimeBetweenCities("Toulouse", "Paris")
 timeTravels
 ```
 
@@ -458,9 +458,15 @@ if (!requireNamespace("dplyr")){install.packages("dplyr")}
 library(dplyr)
 
 AIR_TRAFIC_DATA_URL <- "https://www.data.gouv.fr/fr/datasets/r/0c0a451e-983b-4f06-9627-b5ff1bccd2fc" 
+
 airTraficDf <- read.csv(AIR_TRAFIC_DATA_URL, sep = ";", dec = ",")
 
-# On crée une fonction qui renvoie le trafic total d'une liaison en 2019 en PKT avec deux noms de villes en paramètres
+airTraficDf
+```
+
+On crée une fonction qui renvoie le trafic total d'une liaison en 2019 en PKT à partir des deux noms de villes en paramètre
+
+```{r}
 getAirTraficBetweenCities <- function(city1, city2){
   
   # Trafic dans le sens city1 -> city2
@@ -473,9 +479,13 @@ getAirTraficBetweenCities <- function(city1, city2){
              filter(grepl(city2, LSN_DEP_NOM, ignore.case = TRUE) & grepl(city1, LSN_ARR_NOM, ignore.case = TRUE)) %>%
     summarise(trafic = sum(LSN_DIST*LSN_PAX_loc))
   
-  return(airTrafic1 + airTrafic2)
+  return(as.vector(airTrafic1 + airTrafic2))e
 }
+```
 
+On teste la fonction avec Toulouse et Paris
+
+```{r}
 trafic <- getAirTraficBetweenCities("Toulouse", "Paris")
 trafic
 ```
@@ -491,7 +501,7 @@ for (cities in under2h30Routes){
 under2h30AirTrafic
 ```
 
-On calcul les émissions de CO2 avec une estimation des gCO2éq par PKT de  [statista](https://www.statista.com/statistics/1113177/co2-emissions-by-airline-europe/)
+On calcule les émissions de CO2 de avec une estimation des gCO2éq par PKT de [statista](https://www.statista.com/statistics/1113177/co2-emissions-by-airline-europe/)
 
 ```{r}
 GCO2_PER_PKT <- 80
