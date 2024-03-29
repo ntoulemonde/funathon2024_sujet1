@@ -165,8 +165,8 @@ On créé une fonction qui prend en paramètre les noms de 2 villes et qui renvo
 ```{r}
 getTravelTimeBetweenCities <- function(city1, city2, verbose = TRUE){
   # On récupère les coordonnées des villes
-  coordinates1 <- getCityCoordinates(city1)
-  coordinates2 <- getCityCoordinates(city2)
+  coordinates1 <- getCityCoordinates(city1, verbose = FALSE)
+  coordinates2 <- getCityCoordinates(city2, verbose = FALSE)
   
   # On créé le JSON pour l'API de routage en se basant sur celui de la sous-partie "Interaction avec l'API de routage de TravelTime"
   json <- paste0('{
@@ -220,32 +220,45 @@ getTravelTimeBetweenCities <- function(city1, city2, verbose = TRUE){
   # On questionne l'API de routage avec le json
   response <- getTraveltimeAPIResponse(ROUTES_API_URL, json)
   
-  # On gère le cas où aucun itinéraire n'a été trouvé
+  # Si on a le code de réponse 429, on dépasse le quota de requêtes par minute
+  # donc on attend 1 minute et on relance la fonction en récursion
+  if (response[[2]] == 429){
+    print("Trop de requêtes, on attend une minute...")
+    Sys.sleep(60)
+    return(getTravelTimeBetweenCities(city1, city2, verbose))
+  }
+  
+  # Si aucun itinéraire n'a été trouvé
   if (length(response[[1]]$results[[1]]$locations) == 0){
       travelTime <- Inf
+      # On affiche le temps de trajet si verbose est TRUE
+      if (verbose){
+        cat(city1, " -> ", city2, " : ", travelTime, "\n")
+      }
       return(travelTime)
+  # Sinon
+  }else{
+    # On extrait les données utiles
+    apiData <- response[[1]]$results[[1]]$locations[[1]]$properties
+    
+    # On boucle sur apiData pour récupérer les temps de trajet
+    travelTimes <- c()
+    for (i in 1:length(apiData)){
+      # On convertit le temps de trajet en heures et on l'ajoute à travelTimes
+      travelTime <- apiData[[i]]$travel_time
+      travelTimes <- c(travelTimes, travelTime)
+    }
+    
+    # On récupère l'itinéraire le plus court et on convertie le temps de trajet en heures
+    travelTime <- min(travelTimes) / 3600
+    
+    # On affiche le temps de trajet si verbose est TRUE
+    if (verbose){
+      cat(city1, " -> ", city2, " : ", travelTime, "\n")
+    }
+    
+    return(travelTime)
   }
-  
-  # On extrait les données utiles
-  apiData <- response[[1]]$results[[1]]$locations[[1]]$properties
-  
-  # On boucle sur apiData pour récupérer les temps de trajet
-  travelTimes <- c()
-  for (i in 1:length(apiData)){
-    # On convertit le temps de trajet en heures et on l'ajoute à travelTimes
-    travelTime <- apiData[[i]]$travel_time
-    travelTimes <- c(travelTimes, travelTime)
-  }
-  
-  # On récupère l'itinéraire le plus court et on convertie le temps de trajet en heures
-  travelTime <- min(travelTimes) / 3600
-  
-  # On affiche le temps de trajet si verbose est TRUE
-  if (verbose){
-    cat(city1, " -> ", city2, " : ", travelTime, "\n")
-  }
-  
-  return(travelTime)
 }
 ```
 
@@ -361,7 +374,7 @@ underThresholdEmissions <- underThresholdAirTrafic * GCO2_PER_PKT / 1000000
 underThresholdEmissions
 ```
 
-## Affichage des données sur une carte avec le package leaflet
+## Datavisualisation des données sur une carte avec le package leaflet
 
 On entre la clé API de Stadia Maps (créér un compte [ici](https://client.stadiamaps.com/signup/?utm_content=top_nav_signup&utm_source=marketing_site)) et on entre les liens des tuiles Stadia Maps pour les fonds de carte (autres URL de fonds de carte [ici](https://stadiamaps.com/themes/))
 
@@ -412,31 +425,55 @@ leafletMap <- leaflet() %>%
   addTiles(urlTemplate = TILES_URL)
 ```
 
-On boucle pour ajouter chaque ligne à la carte
+On boucle pour ajouter toutes les lignes repérées à la carte :
+-   Si les émissions sont non-nulles, on les affiche en rouge avec une épaisseur de trait proportionnelle aux émissions
+-   Si les émissions sont nulles, on les affiche en noir en trait fin
 
 ```{r}
 for (i in 1:nrow(emissionByRouteDf)) {
-  leafletMap <- leafletMap %>%
-    addPolylines(lat = c(emissionByRouteDf[i,"lat1"], emissionByRouteDf[i,"lat2"]),
-                lng = c(emissionByRouteDf[i,"lng1"], emissionByRouteDf[i,"lng2"]),
-                weight = emissionByRouteDf[i,"emissions"]/10000,
-                color = "red", opacity = 0.5
-                )
+  # Si les émissions sont non-nulles
+  if (emissionByRouteDf[i,"emissions"] > 0){
+      leafletMap <- leafletMap %>%
+      addPolylines(lat = c(emissionByRouteDf[i,"lat1"], emissionByRouteDf[i,"lat2"]),
+                   lng = c(emissionByRouteDf[i,"lng1"], emissionByRouteDf[i,"lng2"]),
+                   weight = emissionByRouteDf[i,"emissions"]/10000,
+                   color = "red", opacity = 0.5
+                   )
+  # Si les émissions sont nulles
+      }else{
+    leafletMap <- leafletMap %>%
+      addPolylines(lat = c(emissionByRouteDf[i,"lat1"], emissionByRouteDf[i,"lat2"]),
+                   lng = c(emissionByRouteDf[i,"lng1"], emissionByRouteDf[i,"lng2"]),
+                   weight = 1,
+                   color = "black", opacity = 0.5
+                   )
+  }
 }
 ```
 
-On boucle pour ajouter chaque ligne à la carte
+On boucle pour ajouter toutes les villes repérées à la carte
 
 ```{r}
+
+# On personnalise les étiquettes qui seront affichées sur la carte
+customLabelOptions <- labelOptions(noHide = TRUE, style = list("background" = "rgba(255, 255, 255, 0.5)"))
+
 for (i in 1:nrow(emissionByRouteDf)) {
   leafletMap <- leafletMap %>%
-    addMarkers(lat = emissionByRouteDf[i,"lat1"],
-               lng = emissionByRouteDf[i,"lng1"],
-               popup = emissionByRouteDf[i,"city1"]) %>%
-    addMarkers(lat = emissionByRouteDf[i,"lat2"],
-               lng = emissionByRouteDf[i,"lng2"],
-               popup = emissionByRouteDf[i,"city2"])
+    addCircleMarkers(lat = emissionByRouteDf[i, "lat1"],
+                     lng = emissionByRouteDf[i, "lng1"],
+                     radius = 5,
+                     color = "#4444AA",
+                     label = as.character(emissionByRouteDf[i, "city1"]),
+                     labelOptions = customLabelOptions) %>%
+    addCircleMarkers(lat = emissionByRouteDf[i, "lat2"],
+                     lng = emissionByRouteDf[i, "lng2"],
+                     radius = 5,
+                     color = "#4444AA",
+                     label = as.character(emissionByRouteDf[i, "city2"]),
+                     labelOptions = customLabelOptions)
 }
+
 ```
 
 On affiche la carte
