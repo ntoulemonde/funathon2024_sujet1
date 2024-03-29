@@ -11,7 +11,7 @@ editor_options:
 
 # Funathon 2024 - Sujet 1
 
-## Interaction avec l'API de TravelTime
+## Interaction avec l'API de routage de TravelTime
 
 On crée une fonction qui envoie une requête contenant un JSON à l'endpoint d'une API de TravelTime grâce à la bibliothèque "httr"
 
@@ -37,160 +37,6 @@ getTraveltimeAPIResponse <- function(apiUrl, json){
   return(list(content, code))
 }
 ```
-
-On créé un JSON à partir de la documentation de l'API (playground disponible [ici](https://playground.traveltime.com/isochrones)) avec les caractéristiques suivantes :
-
--   Lieu : Centre de Paris (48.8534, 2.3483)
-
--   Isochrone : 1h00
-
--   Mode de transport : Transport public (bus, métro, tram, train)
-
--   Date et heure : 2024-03-17 à 18h00 UTC
-
--   Flexibilité : 1h00
-
--   Le reste des paramètres par défaut
-
-```{r}
-json <- '{
-  "departure_searches": [
-    {
-      "id": "isochrone-0",
-      "coords": {
-        "lat": 48.8534,
-        "lng": 2.3483
-      },
-      "departure_time": "2024-03-17T18:00:00.000Z",
-      "travel_time": 3600,
-      "transportation": {
-        "type": "public_transport",
-        "walking_time": 900,
-        "cycling_time_to_station": 100,
-        "parking_time": 0,
-        "boarding_time": 0,
-        "driving_time_to_station": 1800,
-        "pt_change_delay": 0,
-        "disable_border_crossing": false
-      },
-      "level_of_detail": {
-        "scale_type": "simple",
-        "level": "medium"
-      },
-      "single_shape": false,
-      "no_holes": false,
-      "range": {
-        "enabled": true,
-        "width": 3600
-      }
-    }
-  ]
-}'
-```
-
-On questionne l'API avec la fonction et le json, et on regarde le contenu de la réponse de l'API
-
-```{r}
-response <- getTraveltimeAPIResponse(ISOCHRONE_API_URL, json)
-#View(response) # Ne marche pas dans Quarto
-response
-```
-
-Après observation de la réponse, on extrait les données utiles de la réponse de l'API
-
-```{r}
-apiData <- response[[1]]$results[[1]]$shapes
-#View(apiData) # Ne marche pas dans Quarto
-apiData
-```
-
-Après observation des données, on extrait le premier polygone de l'isochrone
-
-```{r}
-# On extrait le premier polygone de l'isochrone
-rawShape1 <- apiData[[1]]$shell
-# On initialise un dataframe vide
-shape1 <- data.frame(lat = numeric(), lng = numeric())
-# On parcourt chaque élément de rawShape1 pour le transformer en dataframe
-for(currentPoint in rawShape1) {
-  # On ajoute les coordonnées du point courant à shape1
-  shape1 <- rbind(shape1, data.frame(lat = currentPoint$lat, lng = currentPoint$lng))
-}
-shape1
-```
-
-On extrait tous les polygones de l'isochrone dans une liste en faisant une boucle du code précédent
-
-```{r}
-shapeList <- list()
-# On boucle sur chaque polygone de l'isochrone
-for (i in 1:length(apiData)){
-  
-  
-  # On extrait le n-ième polygone de l'isochrone
-  rawShape <- response[[1]]$results[[1]]$shapes[[i]]$shell
-  # On initialise un dataframe vide
-  shape <- data.frame(lat = numeric(), lng = numeric())
-  # On parcourt chaque élément de rawShape pour le transformer en dataframe
-  for(currentPoint in rawShape) {
-    # On ajoute les coordonnées du point courant à shape
-    shape <- rbind(shape, data.frame(lat = currentPoint$lat, lng = currentPoint$lng))
-  }
-  
-  
-  # On ajoute le polygone à la liste
-  shapeList[[length(shapeList)+1]] <- shape
-}
-```
-
-## Affichage de la carte et de l'isochrone avec le package leaflet
-
-On entre la clé API de Stadia Maps (créér un compte [ici](https://client.stadiamaps.com/signup/?utm_content=top_nav_signup&utm_source=marketing_site)) et on entre les liens des tuiles Stadia Maps pour les fonds de carte (autres URL de fonds de carte [ici](https://stadiamaps.com/themes/))
-
-```{r}
-if (!requireNamespace("leaflet")){install.packages("leaflet")}
-library(leaflet)
-
-STADIA_MAPS_API_KEY <- "e6f6cfad-a662-4589-b060-1d7eed6d88a3"
-
-ALIDADE_SMOOTH_TILES_URL <- "https://tiles.stadiamaps.com/tiles/alidade_smooth/{z}/{x}/{y}{r}.png?api_key="
-OUTDOORS_TILES_URL <- "https://tiles.stadiamaps.com/tiles/outdoors/{z}/{x}/{y}{r}.png?api_key="
-ALIDADE_SATELLITE_TILES_URL <- "https://tiles.stadiamaps.com/tiles/alidade_satellite/{z}/{x}/{y}{r}.png?api_key="
-
-# On passe la clé API dans les URL des tuiles
-TILES_URL <- paste0(ALIDADE_SMOOTH_TILES_URL, STADIA_MAPS_API_KEY)
-
-```
-
-On créé une carte de base avec le fond de carte Stadia Maps
-
-```{r}
-leafletMap <- leaflet() %>%
-  addTiles(urlTemplate = TILES_URL)
-
-```
-
-On boucle pour ajouter chaque polygone de shapeList à la carte
-
-```{r}
-for (s in shapeList) {
-  leafletMap <- leafletMap %>% addPolygons(data = s, 
-                                           ~lng, ~lat, 
-                                           color = "#FF0000", 
-                                           fillColor = "#FFAAAA", 
-                                           fillOpacity = 0.5, 
-                                           weight = 2)
-}
-
-```
-
-On affiche la carte
-
-```{r}
-leafletMap
-```
-
-## Interaction avec l'API de routage de TravelTime
 
 On créé un JSON à partir de la documentation de l'API (playground disponible [ici](https://playground.traveltime.com/routes)) avec les caractéristiques suivantes :
 
@@ -256,13 +102,13 @@ json <- '{
 }'
 ```
 
-On questionne l'API avec la fonction, et le json, et on regarde le contenu de la réponse de l'API
+On questionne l'API avec la fonction et le json, et on regarde le contenu de la réponse de l'API
 
 ```{r}
 ROUTES_API_URL <- "https://api.traveltimeapp.com/v4/routes"
 
 response <- getTraveltimeAPIResponse(ROUTES_API_URL, json)
-#View(response) # Ne marche pas dans Quarto
+#View(response) # Ne marche pas pour les rendus Quarto
 response
 ```
 
@@ -270,7 +116,7 @@ Après observation de la réponse, on extrait les données utiles de la réponse
 
 ```{r}
 apiData <- response[[1]]$results[[1]]$locations[[1]]$properties
-#View(apiData) # Ne marche pas dans Quarto
+#View(apiData) # Ne marche pas pour les rendus Quarto
 apiData
 ```
 
@@ -479,7 +325,7 @@ getAirTraficBetweenCities <- function(city1, city2){
              filter(grepl(city2, LSN_DEP_NOM, ignore.case = TRUE) & grepl(city1, LSN_ARR_NOM, ignore.case = TRUE)) %>%
     summarise(trafic = sum(LSN_DIST*LSN_PAX_loc))
   
-  return(as.vector(airTrafic1 + airTrafic2))e
+  return(as.vector(airTrafic1 + airTrafic2))
 }
 ```
 
@@ -512,6 +358,160 @@ under2h30Emissions
 ```
 
 # Code annexe
+
+## Interaction avec l'API d'isochrones de TravelTime
+
+On créé un JSON à partir de la documentation de l'API (playground disponible [ici](https://playground.traveltime.com/isochrones)) avec les caractéristiques suivantes :
+
+-   Lieu : Centre de Paris (48.8534, 2.3483)
+
+-   Isochrone : 1h00
+
+-   Mode de transport : Transport public (bus, métro, tram, train)
+
+-   Date et heure : 2024-03-17 à 18h00 UTC
+
+-   Flexibilité : 1h00
+
+-   Le reste des paramètres par défaut
+
+```{r}
+json <- '{
+  "departure_searches": [
+    {
+      "id": "isochrone-0",
+      "coords": {
+        "lat": 48.8534,
+        "lng": 2.3483
+      },
+      "departure_time": "2024-03-17T18:00:00.000Z",
+      "travel_time": 3600,
+      "transportation": {
+        "type": "public_transport",
+        "walking_time": 900,
+        "cycling_time_to_station": 100,
+        "parking_time": 0,
+        "boarding_time": 0,
+        "driving_time_to_station": 1800,
+        "pt_change_delay": 0,
+        "disable_border_crossing": false
+      },
+      "level_of_detail": {
+        "scale_type": "simple",
+        "level": "medium"
+      },
+      "single_shape": false,
+      "no_holes": false,
+      "range": {
+        "enabled": true,
+        "width": 3600
+      }
+    }
+  ]
+}'
+```
+
+On questionne l'API avec la fonction et le json, et on regarde le contenu de la réponse de l'API
+
+```{r}
+response <- getTraveltimeAPIResponse(ISOCHRONE_API_URL, json)
+#View(response) # Ne marche pas pour les rendus Quarto
+response
+```
+
+Après observation de la réponse, on extrait les données utiles de la réponse de l'API
+
+```{r}
+apiData <- response[[1]]$results[[1]]$shapes
+#View(apiData) # Ne marche pas pour les rendus Quarto
+apiData
+```
+
+Après observation des données, on extrait le premier polygone de l'isochrone
+
+```{r}
+# On extrait le premier polygone de l'isochrone
+rawShape1 <- apiData[[1]]$shell
+# On initialise un dataframe vide
+shape1 <- data.frame(lat = numeric(), lng = numeric())
+# On parcourt chaque élément de rawShape1 pour le transformer en dataframe
+for(currentPoint in rawShape1) {
+  # On ajoute les coordonnées du point courant à shape1
+  shape1 <- rbind(shape1, data.frame(lat = currentPoint$lat, lng = currentPoint$lng))
+}
+shape1
+```
+
+On extrait tous les polygones de l'isochrone dans une liste en faisant une boucle du code précédent
+
+```{r}
+shapeList <- list()
+# On boucle sur chaque polygone de l'isochrone
+for (i in 1:length(apiData)){
+  
+  
+  # On extrait le n-ième polygone de l'isochrone
+  rawShape <- response[[1]]$results[[1]]$shapes[[i]]$shell
+  # On initialise un dataframe vide
+  shape <- data.frame(lat = numeric(), lng = numeric())
+  # On parcourt chaque élément de rawShape pour le transformer en dataframe
+  for(currentPoint in rawShape) {
+    # On ajoute les coordonnées du point courant à shape
+    shape <- rbind(shape, data.frame(lat = currentPoint$lat, lng = currentPoint$lng))
+  }
+  
+  
+  # On ajoute le polygone à la liste
+  shapeList[[length(shapeList)+1]] <- shape
+}
+```
+
+## Affichage de la carte et de l'isochrone avec le package leaflet
+
+On entre la clé API de Stadia Maps (créér un compte [ici](https://client.stadiamaps.com/signup/?utm_content=top_nav_signup&utm_source=marketing_site)) et on entre les liens des tuiles Stadia Maps pour les fonds de carte (autres URL de fonds de carte [ici](https://stadiamaps.com/themes/))
+
+```{r}
+if (!requireNamespace("leaflet")){install.packages("leaflet")}
+library(leaflet)
+
+STADIA_MAPS_API_KEY <- "e6f6cfad-a662-4589-b060-1d7eed6d88a3"
+
+ALIDADE_SMOOTH_TILES_URL <- "https://tiles.stadiamaps.com/tiles/alidade_smooth/{z}/{x}/{y}{r}.png?api_key="
+OUTDOORS_TILES_URL <- "https://tiles.stadiamaps.com/tiles/outdoors/{z}/{x}/{y}{r}.png?api_key="
+ALIDADE_SATELLITE_TILES_URL <- "https://tiles.stadiamaps.com/tiles/alidade_satellite/{z}/{x}/{y}{r}.png?api_key="
+
+# On passe la clé API dans les URL des tuiles
+TILES_URL <- paste0(ALIDADE_SMOOTH_TILES_URL, STADIA_MAPS_API_KEY)
+
+```
+
+On créé une carte de base avec le fond de carte Stadia Maps
+
+```{r}
+leafletMap <- leaflet() %>%
+  addTiles(urlTemplate = TILES_URL)
+
+```
+
+On boucle pour ajouter chaque polygone de shapeList à la carte
+
+```{r}
+for (s in shapeList) {
+  leafletMap <- leafletMap %>% addPolygons(data = s, 
+                                           ~lng, ~lat, 
+                                           color = "#FF0000", 
+                                           fillColor = "#FFAAAA", 
+                                           fillOpacity = 0.5, 
+                                           weight = 2)
+}
+
+```
+
+On affiche la carte
+
+```{r}
+leafletMap
+```
 
 ## Interaction avec l'API de matrices temporelles de TravelTime
 
@@ -619,7 +619,7 @@ On questionne l'API avec la fonction et le json, et on regarde le contenu de la 
 TIME_MATRIX_API_URL <- "https://api.traveltimeapp.com/v4/time-filter"
 
 response <- getTraveltimeAPIResponse(TIME_MATRIX_API_URL, json)
-#View(response) # Ne marche pas dans Quarto
+#View(response) # Ne marche pas pour les rendus Quarto
 response
 ```
 
@@ -627,6 +627,6 @@ Après observation de la réponse, on extrait les données utiles de la réponse
 
 ```{r}
 apiData <- response[[1]]$results[[1]]
-#View(apiData) # Ne marche pas dans Quarto
+#View(apiData) # Ne marche pas pour les rendus Quarto
 apiData
 ```
