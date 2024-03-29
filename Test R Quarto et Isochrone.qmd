@@ -1,3 +1,14 @@
+---
+title: "My Document"
+format:
+  html:
+    toc: true
+    number-sections: true
+editor: visual
+editor_options: 
+  chunk_output_type: console
+--- 
+
 # Funathon 2024 - Sujet 1
 
 ## Interaction avec l'API de TravelTime
@@ -5,18 +16,20 @@
 On crée une fonction qui envoie une requête contenant un JSON à l'endpoint d'une API de TravelTime grâce à la bibliothèque "httr"
 
 ```{r}
+if (!requireNamespace("httr")){install.packages("httr")}
 library(httr)
-ISOCHRONE_API_URL <- "https://api.app.com/v4/time-map"
+
+ISOCHRONE_API_URL <- "https://api.traveltimeapp.com/v4/time-map"
 X_API_ID <- "c32b3037"
 X_API_KEY <- "c0c067d7cddbdb9acbd6389ef5b73aae"
 
-getTraveltimeAPIResponse <- function(api_url, json){
+getTraveltimeAPIResponse <- function(apiUrl, json){
   # On prépare les headers
   headers <- httr::add_headers("Content-Type" = "application/json",
                                "X-Application-Id" = X_API_ID,
                                "X-Api-Key" = X_API_KEY)
   # On envoie la requête avec les headers spécifiés
-  response <- httr::POST(api_url, body = json, encode = "json", headers)
+  response <- httr::POST(apiUrl, body = json, encode = "json", headers)
   # On récupère le contenu de la réponse
   content <- httr::content(response)
   # On récupère le code de la réponse
@@ -33,7 +46,7 @@ On créé un JSON à partir de la documentation de l'API (playground disponible 
 
 -   Mode de transport : Transport public (bus, métro, tram, train)
 
--   Date et heure : 2024-03-07 à 18h00 UTC
+-   Date et heure : 2024-03-17 à 18h00 UTC
 
 -   Flexibilité : 1h00
 
@@ -48,7 +61,7 @@ json <- '{
         "lat": 48.8534,
         "lng": 2.3483
       },
-      "departure_time": "2024-03-07T18:00:00.000Z",
+      "departure_time": "2024-03-17T18:00:00.000Z",
       "travel_time": 3600,
       "transportation": {
         "type": "public_transport",
@@ -79,15 +92,16 @@ On questionne l'API avec la fonction et le json, et on regarde le contenu de la 
 
 ```{r}
 response <- getTraveltimeAPIResponse(ISOCHRONE_API_URL, json)
-View(response)
+#View(response) # Ne marche pas dans Quarto
+response
 ```
 
 Après observation de la réponse, on extrait les données utiles de la réponse de l'API
 
 ```{r}
 apiData <- response[[1]]$results[[1]]$shapes
-View(apiData)
-
+#View(apiData) # Ne marche pas dans Quarto
+apiData
 ```
 
 Après observation des données, on extrait le premier polygone de l'isochrone
@@ -134,6 +148,9 @@ for (i in 1:length(apiData)){
 On entre la clé API de Stadia Maps (créér un compte [ici](https://client.stadiamaps.com/signup/?utm_content=top_nav_signup&utm_source=marketing_site)) et on entre les liens des tuiles Stadia Maps pour les fonds de carte (autres URL de fonds de carte [ici](https://stadiamaps.com/themes/))
 
 ```{r}
+if (!requireNamespace("leaflet")){install.packages("leaflet")}
+library(leaflet)
+
 STADIA_MAPS_API_KEY <- "e6f6cfad-a662-4589-b060-1d7eed6d88a3"
 
 ALIDADE_SMOOTH_TILES_URL <- "https://tiles.stadiamaps.com/tiles/alidade_smooth/{z}/{x}/{y}{r}.png?api_key="
@@ -183,7 +200,7 @@ On créé un JSON à partir de la documentation de l'API (playground disponible 
 
 -   Mode de transport : Transport public (bus, métro, tram, train)
 
--   Date et heure : 2024-03-07 à 18h00 UTC
+-   Date et heure : 2024-03-17 à 18h00 UTC
 
 -   Flexibilité : 12h00
 
@@ -224,7 +241,7 @@ json <- '{
       "arrival_location_ids": [
         "point-to-1"
       ],
-      "departure_time": "2024-03-07T18:00:00.000Z",
+      "departure_time": "2024-03-17T18:00:00.000Z",
       "properties": [
         "travel_time",
         "route"
@@ -245,14 +262,16 @@ On questionne l'API avec la fonction, et le json, et on regarde le contenu de la
 ROUTES_API_URL <- "https://api.traveltimeapp.com/v4/routes"
 
 response <- getTraveltimeAPIResponse(ROUTES_API_URL, json)
-View(response)
+#View(response) # Ne marche pas dans Quarto
+response
 ```
 
 Après observation de la réponse, on extrait les données utiles de la réponse de l'API
 
 ```{r}
 apiData <- response[[1]]$results[[1]]$locations[[1]]$properties
-View(apiData)
+#View(apiData) # Ne marche pas dans Quarto
+apiData
 ```
 
 ## Coordonnées des villes françaises
@@ -261,7 +280,7 @@ On utilise le package "osmdata" pour récupérer les coordonnées des villes fra
 
 ```{r}
 # On installe et on importe le package "osmdata"
-install.packages("osmdata")
+if (!requireNamespace("osmdata")){install.packages("osmdata")}
 library(osmdata)
 
 CITY_NAME <- "Lille"
@@ -280,77 +299,87 @@ coordinates
 On fait une fonction
 
 ```{r}
-getCityCoordinates <- function(city){
+getCityCoordinates <- function(city, verbose = TRUE){
   # On obtient les coordonnées de la ville
   coordinates <-  rowMeans(getbb(paste0(city,", France")))
   # On constate que la latitude et la longitude sont inversées, on les inverse
   coordinates <- rev(coordinates)
   names(coordinates) <- c("lat", "lng")
+  # Si verbose est TRUE, on affiche les coordonnées
+  if (verbose){
+    cat(city, " -> (", coordinates[1],", ",coordinates[2], ")\n", sep = "")
+  }
   return(coordinates)
 }
 ```
 
 ## Temps de transport entre 2 villes
 
-On créé une fonction qui prend en paramètre les noms de 2 villes et qui renvoie le temps de transport en heure entre ces 2 villes
+On créé une fonction qui prend en paramètre les noms de 2 villes et qui renvoie le temps de transport en heure entre ces 2 villes. On prendra soin de gérer le cas où aucun itinéraire n'est trouvé en renvoyant 'Inf'
 
 ```{r}
-getTravelTimeBetweenCities <- function(city1, city2){
+getTravelTimeBetweenCities <- function(city1, city2, verbose = TRUE){
   # On récupère les coordonnées des villes
   coordinates1 <- getCityCoordinates(city1)
   coordinates2 <- getCityCoordinates(city2)
   
   # On créé le JSON pour l'API de routage en se basant sur celui de la sous-partie "Interaction avec l'API de routage de TravelTime"
   json <- paste0('{
-  "locations": [
-    {
-      "id": "point-from",
-      "coords": {
-        "lat": ', coordinates1[1], ',
-        "lng": ', coordinates1[2], '
-      }
-    },
-    {
-      "id": "point-to-1",
-      "coords": {
-        "lat": ', coordinates2[1], ',
-        "lng": ', coordinates2[2], '
-      }
-    }
-  ],
-  "departure_searches": [
-    {
-      "id": "departure-search",
-      "transportation": {
-        "type": "public_transport",
-        "walking_time": 900,
-        "cycling_time_to_station": 100,
-        "parking_time": 0,
-        "boarding_time": 0,
-        "driving_time_to_station": 1800,
-        "pt_change_delay": 0,
-        "disable_border_crossing": false
+    "locations": [
+      {
+        "id": "point-from",
+        "coords": {
+          "lat": ', coordinates1[1], ',
+          "lng": ', coordinates1[2], '
+        }
       },
-      "departure_location_id": "point-from",
-      "arrival_location_ids": [
-        "point-to-1"
-      ],
-      "departure_time": "2024-03-07T18:00:00.000Z",
-      "properties": [
-        "travel_time",
-        "route"
-      ],
-      "range": {
-        "enabled": true,
-        "max_results": 5,
-        "width": 43200
+      {
+        "id": "point-to-1",
+        "coords": {
+          "lat": ', coordinates2[1], ',
+          "lng": ', coordinates2[2], '
+        }
       }
-    }
-  ]
-}')
+    ],
+    "departure_searches": [
+      {
+        "id": "departure-search",
+        "transportation": {
+          "type": "public_transport",
+          "walking_time": 900,
+          "cycling_time_to_station": 100,
+          "parking_time": 0,
+          "boarding_time": 0,
+          "driving_time_to_station": 1800,
+          "pt_change_delay": 0,
+          "disable_border_crossing": false
+        },
+        "departure_location_id": "point-from",
+        "arrival_location_ids": [
+          "point-to-1"
+        ],
+        "departure_time": "2024-03-17T18:00:00.000Z",
+        "properties": [
+          "travel_time",
+          "route"
+        ],
+        "range": {
+          "enabled": true,
+          "max_results": 5,
+          "width": 43200
+        }
+      }
+    ]
+  }')
   
   # On questionne l'API de routage avec le json
   response <- getTraveltimeAPIResponse(ROUTES_API_URL, json)
+  
+  # On gère le cas où aucun itinéraire n'a été trouvé
+  if (length(response[[1]]$results[[1]]$locations) == 0){
+      travelTime <- Inf
+      return(travelTime)
+  }
   
   # On extrait les données utiles
   apiData <- response[[1]]$results[[1]]$locations[[1]]$properties
@@ -359,30 +388,117 @@ getTravelTimeBetweenCities <- function(city1, city2){
   travelTimes <- c()
   for (i in 1:length(apiData)){
     # On convertit le temps de trajet en heures et on l'ajoute à travelTimes
-    travelTime <- apiData[[i]]$travel_time / 3600
+    travelTime <- apiData[[i]]$travel_time
     travelTimes <- c(travelTimes, travelTime)
   }
   
-  return(travelTimes)
+  # On récupère l'itinéraire le plus court et on convertie le temps de trajet en heures
+  travelTime <- min(travelTimes) / 3600
+  
+  # On affiche le temps de trajet si verbose est TRUE
+  if (verbose){
+    cat(city1, " -> ", city2, " : ", travelTime, "\n")
+  }
+  
+  return(travelTime)
 }
 ```
 
 On teste la fonction avec Toulouse et Montpellier
 
 ```{r}
-timeTravels <- getTravelTimeBetweenCities("Toulouse", "Paris")
+timeTravels <- getTravelTimeBetweenCities("Toulouse", "Lille")
 timeTravels
 ```
 
-```{q-interact}
-# On créé des champs de saisie pour les villes
-city1 = qinput(label="Ville1 :", value="Ville1")
-city2 = qinput(label="Ville2 :", value="Ville2")
-```
+On fait une matrice temporelle entre les 5 plus grandes agglomérations françaises
 
 ```{r}
-timeTravels <- getTravelTimeBetweenCities(city1, city2)
-timeTravels
+cities <- c("Paris", "Lyon", "Marseille", "Toulouse", "Lille")
+
+timeMatrix <- matrix(NA, nrow = length(cities), ncol = length(cities), dimnames = list(cities, cities))
+
+for (i in 1:length(cities)){
+  for (j in 1:i){
+    if (j != i){
+      timeTravel <- getTravelTimeBetweenCities(cities[i], cities[j])
+      timeMatrix[cities[i], cities[j]] <- timeTravel
+      timeMatrix[cities[j], cities[i]] <- timeTravel
+    }
+  }
+}
+
+timeMatrix
+```
+
+On conserve les couples de villes reliées par un temps de trajet inférieur à 2h30
+
+```{r}
+# On met les couples de ville de la matrice timeMatrix dans une liste
+under2h30Routes <- list()
+for (i in 1:length(cities)){
+  for (j in 1:i){
+    if (i != j){
+      if (timeMatrix[cities[i], cities[j]] < 2.5){
+        under2h30Routes[[length(under2h30Routes)+1]] <- c(cities[i], cities[j])
+      }
+    }
+  }
+}
+
+under2h30Routes
+```
+
+## Trafic aérien entre 2 villes
+
+On télécharge les données de trafic aérien des liaisons en 2019 de la DGAC en opendata [ici](https://www.data.gouv.fr/fr/datasets/trafic-aerien-commercial-mensuel-francais-par-paire-daeroports-par-sens-depuis-1990/)
+
+```{r}
+if (!requireNamespace("dplyr")){install.packages("dplyr")}
+library(dplyr)
+
+AIR_TRAFIC_DATA_URL <- "https://www.data.gouv.fr/fr/datasets/r/0c0a451e-983b-4f06-9627-b5ff1bccd2fc" 
+airTraficDf <- read.csv(AIR_TRAFIC_DATA_URL, sep = ";", dec = ",")
+
+# On crée une fonction qui renvoie le trafic total d'une liaison en 2019 en PKT avec deux noms de villes en paramètres
+getAirTraficBetweenCities <- function(city1, city2){
+  
+  # Trafic dans le sens city1 -> city2
+  airTrafic1 <- airTraficDf %>%
+             filter(grepl(city1, LSN_DEP_NOM, ignore.case = TRUE) & grepl(city2, LSN_ARR_NOM, ignore.case = TRUE)) %>%
+    summarise(trafic = sum(LSN_DIST*LSN_PAX_loc))
+  
+  # Trafic dans le sens city2 -> city1
+  airTrafic2 <- airTraficDf %>%
+             filter(grepl(city2, LSN_DEP_NOM, ignore.case = TRUE) & grepl(city1, LSN_ARR_NOM, ignore.case = TRUE)) %>%
+    summarise(trafic = sum(LSN_DIST*LSN_PAX_loc))
+  
+  return(airTrafic1 + airTrafic2)
+}
+
+trafic <- getAirTraficBetweenCities("Toulouse", "Paris")
+trafic
+```
+
+On somme le trafic aérien pour chaque couple de villes reliées par un temps de trajet inférieur à 2h30
+
+```{r}
+under2h30AirTrafic <- 0
+for (cities in under2h30Routes){
+  airTrafic <- getAirTraficBetweenCities(cities[1], cities[2])
+  under2h30AirTrafic <- under2h30AirTrafic + airTrafic
+}
+under2h30AirTrafic
+```
+
+On calcul les émissions de CO2 avec une estimation des gCO2éq par PKT de  [statista](https://www.statista.com/statistics/1113177/co2-emissions-by-airline-europe/)
+
+```{r}
+GCO2_PER_PKT <- 80
+
+# On estime les émissions de CO2 en tCO2éq par PKT
+under2h30Emissions <- under2h30AirTrafic * GCO2_PER_PKT / 1000000
+under2h30Emissions
 ```
 
 # Code annexe
@@ -399,7 +515,7 @@ On créé un JSON à partir de la documentation de l'API (playground disponible 
 
 -   Mode de transport : Transport public (bus, métro, tram, train)
 
--   Date et heure : 2024-03-07 à 18h00 UTC
+-   Date et heure : 2024-03-17 à 18h00 UTC
 
 -   Flexibilité : 12h00
 
@@ -462,7 +578,7 @@ json <- '{
         "toulouse"
       ],
       "departure_location_id": "starting-location",
-      "departure_time": "2024-03-07T18:00:00.000Z",
+      "departure_time": "2024-03-17T18:00:00.000Z",
       "travel_time": 14400,
       "properties": [
         "travel_time"
@@ -493,12 +609,14 @@ On questionne l'API avec la fonction et le json, et on regarde le contenu de la 
 TIME_MATRIX_API_URL <- "https://api.traveltimeapp.com/v4/time-filter"
 
 response <- getTraveltimeAPIResponse(TIME_MATRIX_API_URL, json)
-View(response)
+#View(response) # Ne marche pas dans Quarto
+response
 ```
 
 Après observation de la réponse, on extrait les données utiles de la réponse de l'API
 
 ```{r}
 apiData <- response[[1]]$results[[1]]
-View(apiData)
+#View(apiData) # Ne marche pas dans Quarto
+apiData
 ```
