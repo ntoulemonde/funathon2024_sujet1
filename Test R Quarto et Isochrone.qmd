@@ -108,7 +108,7 @@ ROUTES_API_URL <- "https://api.traveltimeapp.com/v4/routes"
 
 response <- getTraveltimeAPIResponse(ROUTES_API_URL, json)
 #View(response) # Ne marche pas pour les rendus Quarto
-response
+response # Très long à afficher dans les rendus Quarto
 ```
 
 Après observation de la réponse, on extrait les données utiles de la réponse de l'API
@@ -116,7 +116,7 @@ Après observation de la réponse, on extrait les données utiles de la réponse
 ```{r}
 apiData <- response[[1]]$results[[1]]$locations[[1]]$properties
 #View(apiData) # Ne marche pas pour les rendus Quarto
-apiData
+apiData # Très long à afficher dans les rendus Quarto
 ```
 
 ## Coordonnées des villes françaises
@@ -324,7 +324,7 @@ AIR_TRAFIC_DATA_URL <- "https://www.data.gouv.fr/fr/datasets/r/0c0a451e-983b-4f0
 
 airTraficDf <- read.csv(AIR_TRAFIC_DATA_URL, sep = ";", dec = ",")
 
-airTraficDf
+head(airTraficDf)
 ```
 
 On crée une fonction qui renvoie le trafic total d'une liaison en 2019 en PKT à partir de deux noms de villes (et non d'aéroport) en paramètre (Les noms des principaux aéroports de métropole contiennent le nom de la ville qu'il déssert)
@@ -425,9 +425,7 @@ leafletMap <- leaflet() %>%
   addTiles(urlTemplate = TILES_URL)
 ```
 
-On boucle pour ajouter toutes les lignes repérées à la carte :
--   Si les émissions sont non-nulles, on les affiche en rouge avec une épaisseur de trait proportionnelle aux émissions
--   Si les émissions sont nulles, on les affiche en noir en trait fin
+On boucle pour ajouter toutes les lignes repérées à la carte : - Si les émissions sont non-nulles, on les affiche en rouge avec une épaisseur de trait proportionnelle aux émissions - Si les émissions sont nulles, on les affiche en noir en trait fin
 
 ```{r}
 for (i in 1:nrow(emissionByRouteDf)) {
@@ -551,7 +549,7 @@ Après observation de la réponse, on extrait les données utiles de la réponse
 ```{r}
 apiData <- response[[1]]$results[[1]]$shapes
 #View(apiData) # Ne marche pas pour les rendus Quarto
-apiData
+apiData # Très long à afficher dans les rendus Quarto
 ```
 
 Après observation des données, on extrait le premier polygone de l'isochrone
@@ -746,7 +744,7 @@ TIME_MATRIX_API_URL <- "https://api.traveltimeapp.com/v4/time-filter"
 
 response <- getTraveltimeAPIResponse(TIME_MATRIX_API_URL, json)
 #View(response) # Ne marche pas pour les rendus Quarto
-response
+response # Très long à afficher dans les rendus Quarto
 ```
 
 Après observation de la réponse, on extrait les données utiles de la réponse de l'API
@@ -754,5 +752,34 @@ Après observation de la réponse, on extrait les données utiles de la réponse
 ```{r}
 apiData <- response[[1]]$results[[1]]
 #View(apiData) # Ne marche pas pour les rendus Quarto
-apiData
+apiData # Très long à afficher dans les rendus Quarto
+```
+
+## Morceau de code pour un affichage plus proprement des données JSON de taille importante reçu par les API
+
+```{r}
+# Package pour afficher les données JSON proprement utilisé plus tard
+if (!requireNamespace("jsonlite")){install.packages("jsonlite")}
+library(jsonlite)
+
+# Fonction pour tronquer les listes JSON pour les rendre plus lisibles
+troncateJsonList <- function(json, maxLength = 8) {
+  if(is.list(json)) {
+    # Application récursive pour les sous-listes
+    json <- lapply(json, troncateJsonList, maxLength = maxLength)
+    # Troncature de la liste avec indication si nécessaire
+    if(length(json) > maxLength) {
+      json <- json[1:maxLength]
+      # Ajout d'un objet spécifique pour indiquer la troncature
+      json[[length(json) + 1]] <- list("@LISTE@" = "@TRONQUEE@")
+    }
+  }
+  return(json)
+}
+
+# Fonction pour afficher les données JSON proprement
+prettyJson <- function(json, maxLength = 8) {
+  json <- troncateJsonList(json, maxLength = maxLength)
+  return(toJSON(json, pretty = TRUE))
+}
 ```
