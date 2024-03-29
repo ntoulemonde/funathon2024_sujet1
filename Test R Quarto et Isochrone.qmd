@@ -6,7 +6,7 @@ format:
     number-sections: true
 editor: visual
 editor_options: 
-  chunk_output_type: inline
+  chunk_output_type: console
 ---
 
 # Funathon 2024 - Sujet 1
@@ -121,7 +121,7 @@ apiData
 
 ## Coordonnées des villes françaises
 
-On utilise le package "osmdata" pour récupérer les coordonnées des villes françaises qui nous intéressent
+On utilise le package "osmdata" de OpenStreetMap pour récupérer les coordonnées des villes françaises qui nous intéressent
 
 ```{r}
 # On installe et on importe le package "osmdata"
@@ -261,6 +261,9 @@ On fait une matrice temporelle entre les 5 plus grandes agglomérations françai
 ```{r}
 cities <- c("Paris", "Lyon", "Marseille", "Toulouse", "Lille")
 
+# Top 10 des plus grandes agglomérations françaises
+#cities <- c("Paris", "Marseille", "Lyon", "Toulouse", "Nice", "Nantes", "Montpellier", "Strasbourg", "Bordeaux", "Lille")
+
 timeMatrix <- matrix(NA, nrow = length(cities), ncol = length(cities), dimnames = list(cities, cities))
 
 for (i in 1:length(cities)){
@@ -279,12 +282,14 @@ timeMatrix
 On conserve les couples de villes reliées par un temps de trajet inférieur à 2h30
 
 ```{r}
+THRESHOLD <- 5
+
 # On met les couples de ville de la matrice timeMatrix dans une liste
 underThresholdRoutes <- list()
 for (i in 1:length(cities)){
   for (j in 1:i){
     if (i != j){
-      if (timeMatrix[i, j] < 2.5){
+      if (timeMatrix[i, j] < THRESHOLD){
         underThresholdRoutes[[length(underThresholdRoutes)+1]] <- c(cities[i], cities[j])
       }
     }
@@ -309,7 +314,7 @@ airTraficDf <- read.csv(AIR_TRAFIC_DATA_URL, sep = ";", dec = ",")
 airTraficDf
 ```
 
-On crée une fonction qui renvoie le trafic total d'une liaison en 2019 en PKT à partir des deux noms de villes en paramètre
+On crée une fonction qui renvoie le trafic total d'une liaison en 2019 en PKT à partir de deux noms de villes (et non d'aéroport) en paramètre (Les noms des principaux aéroports de métropole contiennent le nom de la ville qu'il déssert)
 
 ```{r}
 getAirTraficBetweenCities <- function(city1, city2){
@@ -346,7 +351,7 @@ for (cities in underThresholdRoutes){
 underThresholdAirTrafic
 ```
 
-On calcule les émissions de CO2 de avec une estimation des gCO2éq par PKT de [statista](https://www.statista.com/statistics/1113177/co2-emissions-by-airline-europe/)
+On calcule les émissions de CO2 que représente ce trafic avec une estimation des gCO2éq par PKT de [statista](https://www.statista.com/statistics/1113177/co2-emissions-by-airline-europe/)
 
 ```{r}
 GCO2_PER_PKT <- 80
@@ -375,7 +380,7 @@ TILES_URL <- paste0(ALIDADE_SMOOTH_TILES_URL, STADIA_MAPS_API_KEY)
 
 ```
 
-On crée un dataframe avec tous les éléments pour la cartographie (les noms, les latitudes et les longitudes des villes de départ et d'arrivée, et les émissions de CO2 des lignes associées)
+On crée un dataframe avec tous les éléments pour cartographier les émissions sur les lignes repérées (les noms, les latitudes et les longitudes des villes de départ et d'arrivée, et les émissions de CO2 des lignes associées)
 
 ```{r}
 emissionByRouteDf <- data.frame(city1 = character(), city2 = character(), lat1 = numeric(), lng1 = numeric(), lat2 = numeric(), lng2 = numeric(), emissions = numeric())
@@ -410,7 +415,7 @@ leafletMap <- leaflet() %>%
 On boucle pour ajouter chaque ligne à la carte
 
 ```{r}
-for (i in nrow(emissionByRouteDf)) {
+for (i in 1:nrow(emissionByRouteDf)) {
   leafletMap <- leafletMap %>%
     addPolylines(lat = c(emissionByRouteDf[i,"lat1"], emissionByRouteDf[i,"lat2"]),
                 lng = c(emissionByRouteDf[i,"lng1"], emissionByRouteDf[i,"lng2"]),
@@ -423,7 +428,7 @@ for (i in nrow(emissionByRouteDf)) {
 On boucle pour ajouter chaque ligne à la carte
 
 ```{r}
-for (i in nrow(emissionByRouteDf)) {
+for (i in 1:nrow(emissionByRouteDf)) {
   leafletMap <- leafletMap %>%
     addMarkers(lat = emissionByRouteDf[i,"lat1"],
                lng = emissionByRouteDf[i,"lng1"],
