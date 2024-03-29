@@ -19,7 +19,6 @@ On crée une fonction qui envoie une requête contenant un JSON à l'endpoint d'
 if (!requireNamespace("httr")){install.packages("httr")}
 library(httr)
 
-ISOCHRONE_API_URL <- "https://api.traveltimeapp.com/v4/time-map"
 X_API_ID <- "c32b3037"
 X_API_KEY <- "c0c067d7cddbdb9acbd6389ef5b73aae"
 
@@ -281,18 +280,18 @@ On conserve les couples de villes reliées par un temps de trajet inférieur à 
 
 ```{r}
 # On met les couples de ville de la matrice timeMatrix dans une liste
-under2h30Routes <- list()
+underThresholdRoutes <- list()
 for (i in 1:length(cities)){
   for (j in 1:i){
     if (i != j){
-      if (timeMatrix[cities[i], cities[j]] < 2.5){
-        under2h30Routes[[length(under2h30Routes)+1]] <- c(cities[i], cities[j])
+      if (timeMatrix[i, j] < 2.5){
+        underThresholdRoutes[[length(underThresholdRoutes)+1]] <- c(cities[i], cities[j])
       }
     }
   }
 }
 
-under2h30Routes
+underThresholdRoutes
 ```
 
 ## Trafic aérien entre 2 villes
@@ -325,7 +324,7 @@ getAirTraficBetweenCities <- function(city1, city2){
              filter(grepl(city2, LSN_DEP_NOM, ignore.case = TRUE) & grepl(city1, LSN_ARR_NOM, ignore.case = TRUE)) %>%
     summarise(trafic = sum(LSN_DIST*LSN_PAX_loc))
   
-  return(as.vector(airTrafic1 + airTrafic2))
+  return(as.numeric(airTrafic1 + airTrafic2))
 }
 ```
 
@@ -339,12 +338,12 @@ trafic
 On somme le trafic aérien pour chaque couple de villes reliées par un temps de trajet inférieur à 2h30
 
 ```{r}
-under2h30AirTrafic <- 0
-for (cities in under2h30Routes){
+underThresholdAirTrafic <- 0
+for (cities in underThresholdRoutes){
   airTrafic <- getAirTraficBetweenCities(cities[1], cities[2])
-  under2h30AirTrafic <- under2h30AirTrafic + airTrafic
+  underThresholdAirTrafic <- underThresholdAirTrafic + airTrafic
 }
-under2h30AirTrafic
+underThresholdAirTrafic
 ```
 
 On calcule les émissions de CO2 de avec une estimation des gCO2éq par PKT de [statista](https://www.statista.com/statistics/1113177/co2-emissions-by-airline-europe/)
@@ -353,8 +352,92 @@ On calcule les émissions de CO2 de avec une estimation des gCO2éq par PKT de [
 GCO2_PER_PKT <- 80
 
 # On estime les émissions de CO2 en tCO2éq par PKT
-under2h30Emissions <- under2h30AirTrafic * GCO2_PER_PKT / 1000000
-under2h30Emissions
+underThresholdEmissions <- underThresholdAirTrafic * GCO2_PER_PKT / 1000000
+underThresholdEmissions
+```
+
+## Affichage des données sur une carte avec le package leaflet
+
+On entre la clé API de Stadia Maps (créér un compte [ici](https://client.stadiamaps.com/signup/?utm_content=top_nav_signup&utm_source=marketing_site)) et on entre les liens des tuiles Stadia Maps pour les fonds de carte (autres URL de fonds de carte [ici](https://stadiamaps.com/themes/))
+
+```{r}
+if (!requireNamespace("leaflet")){install.packages("leaflet")}
+library(leaflet)
+
+STADIA_MAPS_API_KEY <- "e6f6cfad-a662-4589-b060-1d7eed6d88a3"
+
+ALIDADE_SMOOTH_TILES_URL <- "https://tiles.stadiamaps.com/tiles/alidade_smooth/{z}/{x}/{y}{r}.png?api_key="
+OUTDOORS_TILES_URL <- "https://tiles.stadiamaps.com/tiles/outdoors/{z}/{x}/{y}{r}.png?api_key="
+ALIDADE_SATELLITE_TILES_URL <- "https://tiles.stadiamaps.com/tiles/alidade_satellite/{z}/{x}/{y}{r}.png?api_key="
+
+# On passe la clé API dans les URL des tuiles
+TILES_URL <- paste0(ALIDADE_SMOOTH_TILES_URL, STADIA_MAPS_API_KEY)
+
+```
+
+On crée un dataframe avec tous les éléments pour la cartographie (les noms, les latitudes et les longitudes des villes de départ et d'arrivée, et les émissions de CO2 des lignes associées)
+
+```{r}
+emissionByRouteDf <- data.frame(city1 = character(), city2 = character(), lat1 = numeric(), lng1 = numeric(), lat2 = numeric(), lng2 = numeric(), emissions = numeric())
+
+for (route in underThresholdRoutes){
+  # On récupère les coordonnées des villes
+  coordinates1 <- getCityCoordinates(route[1], verbose = FALSE)
+  coordinates2 <- getCityCoordinates(route[2], verbose = FALSE)
+  
+  # On récupère les émissions de CO2 associées
+  emissions <- getAirTraficBetweenCities(route[1], route[2]) * GCO2_PER_PKT / 1000000
+  
+  # On ajoute les données au dataframe
+  dfTemp <- data.frame(city1 = route[1], city2 = route[2],
+                       lat1 = coordinates1[1], lng1 = coordinates1[2],
+                       lat2 = coordinates2[1], lng2 = coordinates2[2],
+                       emissions = emissions, row.names = paste0(route[1], "-", route[2]))
+  
+  emissionByRouteDf <- rbind(emissionByRouteDf, dfTemp)
+}
+
+emissionByRouteDf
+```
+
+On créé une carte de base avec le fond de carte Stadia Maps
+
+```{r}
+leafletMap <- leaflet() %>%
+  addTiles(urlTemplate = TILES_URL)
+```
+
+On boucle pour ajouter chaque ligne à la carte
+
+```{r}
+for (i in nrow(emissionByRouteDf)) {
+  leafletMap <- leafletMap %>%
+    addPolylines(lat = c(emissionByRouteDf[i,"lat1"], emissionByRouteDf[i,"lat2"]),
+                lng = c(emissionByRouteDf[i,"lng1"], emissionByRouteDf[i,"lng2"]),
+                weight = emissionByRouteDf[i,"emissions"]/10000,
+                color = "red", opacity = 0.5
+                )
+}
+```
+
+On boucle pour ajouter chaque ligne à la carte
+
+```{r}
+for (i in nrow(emissionByRouteDf)) {
+  leafletMap <- leafletMap %>%
+    addMarkers(lat = emissionByRouteDf[i,"lat1"],
+               lng = emissionByRouteDf[i,"lng1"],
+               popup = emissionByRouteDf[i,"city1"]) %>%
+    addMarkers(lat = emissionByRouteDf[i,"lat2"],
+               lng = emissionByRouteDf[i,"lng2"],
+               popup = emissionByRouteDf[i,"city2"])
+}
+```
+
+On affiche la carte
+
+```{r}
+leafletMap
 ```
 
 # Code annexe
@@ -414,6 +497,8 @@ json <- '{
 On questionne l'API avec la fonction et le json, et on regarde le contenu de la réponse de l'API
 
 ```{r}
+ISOCHRONE_API_URL <- "https://api.traveltimeapp.com/v4/time-map"
+
 response <- getTraveltimeAPIResponse(ISOCHRONE_API_URL, json)
 #View(response) # Ne marche pas pour les rendus Quarto
 response
@@ -504,7 +589,6 @@ for (s in shapeList) {
                                            fillOpacity = 0.5, 
                                            weight = 2)
 }
-
 ```
 
 On affiche la carte
