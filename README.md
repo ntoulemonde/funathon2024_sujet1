@@ -1,43 +1,29 @@
 # Funathon 2024 - Sujet 1 :star:
 
-Visualiser le trafic et/ou les émissions de C02 liées à une mesure de restriction de liaison aérienne relativement à des isochrones en trajet ferroviaire.
+Visualiser les émissions de C02 liées à une mesure de restriction de liaison aérienne relativement à des durées de trajets ferroviaires.
 
 ## Grandes parties
 
-1. A partir des liaisons aériennes supprimées par la mesure 2h30, calculer le trafic théorique et les émissions impactées théoriques (si toutes les liaisons avaient été supprimées). Visualiser avec le package _leaflet_ les différentes liaisons supprimées sur une carte de la France. Les traits seront d'une couleur différente selon le trafic et/ou les émissions de CO2 impacté.
+1. Interaction avec l'API de routage de TravelTime
 
-2. Faire la même chose selon une mesure hypothétique des 4h30 :
-   - Récupérer les liaisons impactées via une API qui calcule les isochrones train (gare à gare)
-   - Visualiser les données comme précédent
+2. Récupération des coordonnées des villes françaises
 
-3. Etendre aux liaisons Européennes
+3. Obtention du temps de transport entre 2 villes
 
-4. Rendre le code modulable selon le temps pris pour l'isochrone (ex. pouvoir choisir les isochrones 3h, ou 5h etc)
+4. Téléchargement et extraction des données de trafic aérien entre 2 aéroports
+
+5. Datavisualisation des données sur une carte avec le package leaflet
 
 ## Remarques
 
-Partie 4 vraiment utile ?
+Pas d'utilisation des API "isochrone" et "time matrix" de TravelTime car limitées à 4h max tout inclus (trajet à pied du centre à la gare, etc.) donc utilisation de l'API "routes"
+
+Concernant l'API de routage "routes" pour faire des itinéraires point à point :
+   - Elle est limitée à quelques requêtes par minute et créer donc de la lenteur dans l'exécution du programme
+   - Elle ne permet pas de traverser de frontières
+
+Le package "osmdata" de OpenStreetMap pour récupérer les coordonnées donne les centre-villes et pas les gares
+
+Voir playground de l'API de routage "routes" de TravelTime [ici](https://playground.traveltime.com/routes)
 
 Voir test de _leaflet_ [ici](https://github.com/ThomLecha/TestDeDataVisualisation)
-
-### API isochrones
-Liens des différentes API isochrones :
-
-https://docs.mapbox.com/playground/isochrone/
-Pas de mode "train" disponible
-
-https://apidocs.geoapify.com/playground/isoline/
-Pas de mode "train" disponible et nombre de crédits gratuits limité (que 55 requêtes à 4h30)
-
-https://dashboard.targomo.com/
-Ca semble bon pour nos usages, mais que la partie gratuite fait que du routing (pas d'isochrones)
-
-https://openrouteservice.org
-Pas de mode "train" disponible
-
-https://playground.traveltime.com/isochrones
-Temps de l'isochrone de 4h00 au maximum et le train ne passe pas les frontières (exemple d'utilisation dans _Test_API_Isochrone.R_)
-
-:warning: Trouver une autre API !
-
-
