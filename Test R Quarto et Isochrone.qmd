@@ -11,7 +11,9 @@ editor_options:
 
 # Funathon 2024 - Sujet 1
 
-## Interaction avec l'API de routage de TravelTime
+Visualiser les émissions de C02 liées à une mesure de restriction de liaison aérienne relativement à des durées de trajets ferroviaires.
+
+## 1.Interaction avec l'API de routage de TravelTime
 
 On crée une fonction qui envoie une requête contenant un JSON (en chaine de caractères) à l'endpoint d'une API de TravelTime grâce à la bibliothèque "httr"
 
@@ -119,7 +121,7 @@ apiData <- response[[1]]$results[[1]]$locations[[1]]$properties
 apiData # Très long à afficher dans les rendus Quarto
 ```
 
-## Coordonnées des villes françaises
+## 2.Récupération des coordonnées des villes françaises
 
 On utilise le package "osmdata" de OpenStreetMap pour récupérer les coordonnées des villes françaises qui nous intéressent
 
@@ -158,7 +160,7 @@ getCityCoordinates <- function(city, verbose = TRUE){
 }
 ```
 
-## Temps de transport entre 2 villes
+## 3.Obtention du temps de transport entre 2 villes
 
 On crée une fonction qui prend en paramètre deux couples de coordonnées et qui renvoie un JSON (en chaine de caractères) pour l'API de routage
 
@@ -322,7 +324,7 @@ for (i in 1:length(cities)){
 underThresholdRoutes
 ```
 
-## Trafic aérien entre 2 villes
+## 4.Téléchargement et extraction des données de trafic aérien entre 2 aéroports
 
 On télécharge les données de trafic aérien des liaisons en 2019 de la DGAC en opendata [ici](https://www.data.gouv.fr/fr/datasets/trafic-aerien-commercial-mensuel-francais-par-paire-daeroports-par-sens-depuis-1990/)
 
@@ -384,7 +386,7 @@ underThresholdEmissions <- underThresholdAirTrafic * GCO2_PER_PKT / 1000000
 underThresholdEmissions
 ```
 
-## Datavisualisation des données sur une carte avec le package leaflet
+## 5.Datavisualisation des données sur une carte avec le package leaflet
 
 On entre la clé API de Stadia Maps (créér un compte [ici](https://client.stadiamaps.com/signup/?utm_content=top_nav_signup&utm_source=marketing_site)) et on entre les liens des tuiles Stadia Maps pour les fonds de carte (autres URL de fonds de carte [ici](https://stadiamaps.com/themes/))
 
