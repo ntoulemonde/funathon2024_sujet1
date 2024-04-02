@@ -13,7 +13,7 @@ editor_options:
 
 ## Interaction avec l'API de routage de TravelTime
 
-On crée une fonction qui envoie une requête contenant un JSON à l'endpoint d'une API de TravelTime grâce à la bibliothèque "httr"
+On crée une fonction qui envoie une requête contenant un JSON (en chaine de caractères) à l'endpoint d'une API de TravelTime grâce à la bibliothèque "httr"
 
 ```{r}
 if (!requireNamespace("httr")){install.packages("httr")}
@@ -37,7 +37,7 @@ getTraveltimeAPIResponse <- function(apiUrl, json){
 }
 ```
 
-On créé un JSON à partir de la documentation de l'API (playground disponible [ici](https://playground.traveltime.com/routes)) avec les caractéristiques suivantes :
+On crée un JSON (en chaine de caractères) pour l'API de routage "routes" de TravelTime à partir de la documentation (playground disponible [ici](https://playground.traveltime.com/routes)) avec les caractéristiques suivantes :
 
 -   Lieu de départ : Paris (48.8534, 2.3483)
 
@@ -101,7 +101,7 @@ json <- '{
 }'
 ```
 
-On questionne l'API avec la fonction et le json, et on regarde le contenu de la réponse de l'API
+On teste l'API avec la fonction et le json, et on regarde le contenu de la réponse de l'API
 
 ```{r}
 ROUTES_API_URL <- "https://api.traveltimeapp.com/v4/routes"
@@ -111,7 +111,7 @@ response <- getTraveltimeAPIResponse(ROUTES_API_URL, json)
 response # Très long à afficher dans les rendus Quarto
 ```
 
-Après observation de la réponse, on extrait les données utiles de la réponse de l'API
+Après observation du JSON de la réponse, on extrait les données utiles de celui-ci
 
 ```{r}
 apiData <- response[[1]]$results[[1]]$locations[[1]]$properties
@@ -160,29 +160,25 @@ getCityCoordinates <- function(city, verbose = TRUE){
 
 ## Temps de transport entre 2 villes
 
-On créé une fonction qui prend en paramètre les noms de 2 villes et qui renvoie le temps de transport en heure entre ces 2 villes. On prendra soin de gérer le cas où aucun itinéraire n'est trouvé en renvoyant 'Inf'
+On crée une fonction qui prend en paramètre deux couples de coordonnées et qui renvoie un JSON (en chaine de caractères) pour l'API de routage
 
 ```{r}
-getTravelTimeBetweenCities <- function(city1, city2, verbose = TRUE){
-  # On récupère les coordonnées des villes
-  coordinates1 <- getCityCoordinates(city1, verbose = FALSE)
-  coordinates2 <- getCityCoordinates(city2, verbose = FALSE)
-  
+getRoutesApiJson <- function(lat1, lng1, lat2, lng2){
   # On créé le JSON pour l'API de routage en se basant sur celui de la sous-partie "Interaction avec l'API de routage de TravelTime"
   json <- paste0('{
     "locations": [
       {
         "id": "point-from",
         "coords": {
-          "lat": ', coordinates1[1], ',
-          "lng": ', coordinates1[2], '
+          "lat": ', lat1, ',
+          "lng": ', lng1, '
         }
       },
       {
         "id": "point-to-1",
         "coords": {
-          "lat": ', coordinates2[1], ',
-          "lng": ', coordinates2[2], '
+          "lat": ', lat2, ',
+          "lng": ', lng2, '
         }
       }
     ],
@@ -216,6 +212,20 @@ getTravelTimeBetweenCities <- function(city1, city2, verbose = TRUE){
       }
     ]
   }')
+  return(json)
+}
+```
+
+On crée une fonction qui prend en paramètre les noms de 2 villes et qui renvoie le temps de transport en heure entre ces 2 villes. On prendra soin de gérer le cas où aucun itinéraire n'est trouvé en renvoyant 'Inf'
+
+```{r}
+getTravelTimeBetweenCities <- function(city1, city2, verbose = TRUE){
+  # On récupère les coordonnées des villes
+  coordinates1 <- getCityCoordinates(city1, verbose = FALSE)
+  coordinates2 <- getCityCoordinates(city2, verbose = FALSE)
+  
+  # On récupère le JSON pour l'API de routage
+  json <- getRoutesApiJson(coordinates1[1], coordinates1[2], coordinates2[1], coordinates2[2])
   
   # On questionne l'API de routage avec le json
   response <- getTraveltimeAPIResponse(ROUTES_API_URL, json)
@@ -390,7 +400,6 @@ ALIDADE_SATELLITE_TILES_URL <- "https://tiles.stadiamaps.com/tiles/alidade_satel
 
 # On passe la clé API dans les URL des tuiles
 TILES_URL <- paste0(ALIDADE_SMOOTH_TILES_URL, STADIA_MAPS_API_KEY)
-
 ```
 
 On crée un dataframe avec tous les éléments pour cartographier les émissions sur les lignes repérées (les noms, les latitudes et les longitudes des villes de départ et d'arrivée, et les émissions de CO2 des lignes associées)
@@ -484,7 +493,7 @@ leafletMap
 
 ## Interaction avec l'API d'isochrones de TravelTime
 
-On créé un JSON à partir de la documentation de l'API (playground disponible [ici](https://playground.traveltime.com/isochrones)) avec les caractéristiques suivantes :
+On créé un JSON (en chaine de caractères) pour l'API "isochrones" de TravelTime à partir de la documentation (playground disponible [ici](https://playground.traveltime.com/isochrones)) avec les caractéristiques suivantes :
 
 -   Lieu : Centre de Paris (48.8534, 2.3483)
 
@@ -534,7 +543,7 @@ json <- '{
 }'
 ```
 
-On questionne l'API avec la fonction et le json, et on regarde le contenu de la réponse de l'API
+On teste l'API avec la fonction et le json, et on regarde le contenu de la réponse de l'API
 
 ```{r}
 ISOCHRONE_API_URL <- "https://api.traveltimeapp.com/v4/time-map"
@@ -544,7 +553,7 @@ response <- getTraveltimeAPIResponse(ISOCHRONE_API_URL, json)
 response
 ```
 
-Après observation de la réponse, on extrait les données utiles de la réponse de l'API
+Après observation du JSON de la réponse, on extrait les données utiles de celui-ci
 
 ```{r}
 apiData <- response[[1]]$results[[1]]$shapes
@@ -639,7 +648,7 @@ leafletMap
 
 ## Interaction avec l'API de matrices temporelles de TravelTime
 
-On créé un JSON à partir de la documentation de l'API (playground disponible [ici](https://playground.traveltime.com/travel-time-distance-matrix)) avec les caractéristiques suivantes :
+On crée un JSON (en chaine de caractères) pour l'API "travel time distance matrix" de TravelTime à partir de la documentation (playground disponible [ici](https://playground.traveltime.com/travel-time-distance-matrix)) avec les caractéristiques suivantes :
 
 -   Lieu de départ : Paris (48.8534, 2.3483)
 
