@@ -15,9 +15,11 @@ Visualiser les émissions de C02 liées à une mesure de restriction de liaison 
 
 ## 1.Interaction avec l'API de routage de TravelTime
 
-On teste l'envoie d'une requête contenant un JSON (en chaine de caractères) à l'endpoint d'une API de TravelTime grâce à la bibliothèque "httr".
+Commencer par créer un compte sur [TravelTime](https://account.traveltime.com/) afin de pouvoir accéder à leur API via des clés API.
 
-Pour cela, on crée un JSON (en chaine de caractères) pour l'API de routage "routes" de TravelTime à partir de la documentation (playground disponible [ici](https://playground.traveltime.com/routes)). On teste l'API et on observe le contenu de sa réponse.
+On teste ensuite l'envoie d'une requête contenant un JSON à l'endpoint (i.e au lien) d'une API de TravelTime grâce au code fourni.
+
+Pour cela, on crée un JSON (en chaine de caractères) de test pour l'API de routage "routes" de TravelTime à partir de la documentation (playground disponible [ici](https://playground.traveltime.com/routes)). On teste l'API et on observe le contenu de sa réponse.
 
 *Chunk de code qui sera donnée aux participants (à l'exception des 4 variables données initialement)*
 
@@ -93,7 +95,7 @@ content # Très long à afficher dans les rendus Quarto
 code
 ```
 
-On encapsule le code précédent en une fonction qui envoie une requête contenant un JSON (en chaine de caractères) à l'endpoint d'une API de TravelTime et qui renvoie le contenu et le code de la réponse de l'API
+On encapsule le code précédent dans une fonction qui envoie une requête contenant un JSON (en chaine de caractères) à l'endpoint d'une API de TravelTime et qui renvoie le contenu et le code de la réponse de l'API
 
 *Chunk de code qui sera donnée aux participants*
 
@@ -413,7 +415,9 @@ underThresholdEmissions
 
 ## 5.Datavisualisation des données sur une carte avec le package leaflet
 
-On entre la clé API de Stadia Maps (créér un compte [ici](https://client.stadiamaps.com/signup/?utm_content=top_nav_signup&utm_source=marketing_site)) et on entre les liens des tuiles Stadia Maps pour les fonds de carte (autres URL de fonds de carte [ici](https://stadiamaps.com/themes/))
+Commencer par créer un compte sur [Stadia Maps](https://client.stadiamaps.com/signup/?utm_content=top_nav_signup&utm_source=marketing_site) afin de pouvoir accéder à leur API via des clés API.
+
+On met dans des variables globales la clé API de Stadia Maps et les liens des tuiles Stadia Maps pour les fonds de carte (URL de fonds de carte [ici](https://stadiamaps.com/themes/))
 
 ```{r}
 if (!requireNamespace("leaflet")){install.packages("leaflet")}
@@ -799,23 +803,31 @@ if (!requireNamespace("jsonlite")){install.packages("jsonlite")}
 library(jsonlite)
 
 # Fonction pour tronquer les listes JSON pour les rendre plus lisibles
-troncateJsonList <- function(json, maxLength = 8) {
+troncateJson <- function(json, maxPrintedElements = 8) {
   if(is.list(json)) {
     # Application récursive pour les sous-listes
-    json <- lapply(json, troncateJsonList, maxLength = maxLength)
+    json <- lapply(json, troncateJson, maxPrintedElements = maxPrintedElements)
     # Troncature de la liste avec indication si nécessaire
-    if(length(json) > maxLength) {
-      json <- json[1:maxLength]
+    if(length(json) > maxPrintedElements) {
+      json <- json[1:maxPrintedElements]
       # Ajout d'un objet spécifique pour indiquer la troncature
-      json[[length(json) + 1]] <- list("@LISTE@" = "@TRONQUEE@")
+      json[["@@@LISTE"]] <- "TRONQUEE@@@"
     }
   }
   return(json)
 }
 
-# Fonction pour afficher les données JSON proprement
-prettyJson <- function(json, maxLength = 8) {
-  json <- troncateJsonList(json, maxLength = maxLength)
-  return(toJSON(json, pretty = TRUE))
+# Modification de la fonction prettyJson pour inclure un nombre maximal de lignes à afficher
+prettyJson <- function(json, maxLines = 100, maxPrintedElements = 8) {
+  troncatedJson <- troncateJson(json, maxPrintedElements = maxPrintedElements)
+  troncatedJsonString <- toJSON(troncatedJson, pretty = TRUE)
+  # On limite le nombre de lignes affichées à maxLines
+  jsonLines <- unlist(strsplit(troncatedJsonString, "\n"))
+  if(length(jsonLines) > maxLines) {
+    jsonLines <- head(jsonLines, maxLines)
+    jsonLines <- c(jsonLines, "...")
+  }
+  cat(paste(jsonLines, collapse = "\n"))
+  return(paste(jsonLines, collapse = "\n"))
 }
 ```
