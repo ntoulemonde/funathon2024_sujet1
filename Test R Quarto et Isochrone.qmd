@@ -171,6 +171,7 @@ getCityCoordinates <- function(city, verbose = TRUE){
   }
   return(coordinates)
 }
+
 ```
 
 ## 3.Obtention du temps de transport entre 2 villes
@@ -299,6 +300,11 @@ getTravelTimeBetweenCities <- function(city1, city2, verbose = TRUE){
     return(travelTime)
   }
 }
+
+# test lille
+jsonLilleParis <- getRoutesApiJson(50.63104, 3.046846,43.6044,1.4442)
+response2 <- getTraveltimeAPIResponse(ROUTES_API_URL, jsonLilleParis)
+content2 <- response2[[1]]
 ```
 
 On teste la fonction avec Toulouse et Paris
