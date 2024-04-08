@@ -24,12 +24,18 @@ Pour cela, on crée un JSON (en chaine de caractères) de test pour l'API de rou
 *Chunk de code qui sera donnée aux participants (à l'exception des 4 variables données initialement)*
 
 ```{r}
-if (!requireNamespace("httr")){install.packages("httr")}
-library(httr)
+devtools::install_deps()
+```
 
-X_API_ID <- "c32b3037"
-X_API_KEY <- "c0c067d7cddbdb9acbd6389ef5b73aae"
+```{r}
+library(httr)
+library(yaml)
+
 ROUTES_API_URL <- "https://api.traveltimeapp.com/v4/routes"
+
+secrets <- yaml::read_yaml("config.yaml")
+X_API_ID <- secrets$traveltime$X_API_ID
+X_API_KEY <- secrets$traveltime$X_API_KEY
 
 json <- '{
   "locations": [
@@ -79,6 +85,7 @@ json <- '{
   ]
 }'
 
+
 # On prépare les headers
 headers <- httr::add_headers("Content-Type" = "application/json",
                              "X-Application-Id" = X_API_ID,
@@ -91,8 +98,8 @@ content <- httr::content(response)
 code <- httr::status_code(response)
 
 #View(content) # Ne marche pas pour les rendus Quarto
-content # Très long à afficher dans les rendus Quarto
-code
+#content # Très long à afficher dans les rendus Quarto
+#code
 ```
 
 On encapsule le code précédent dans une fonction qui envoie une requête contenant un JSON (en chaine de caractères) à l'endpoint d'une API de TravelTime et qui renvoie le contenu et le code de la réponse de l'API
@@ -100,7 +107,6 @@ On encapsule le code précédent dans une fonction qui envoie une requête conte
 *Chunk de code qui sera donnée aux participants*
 
 ```{r}
-if (!requireNamespace("httr")){install.packages("httr")}
 library(httr)
 
 getTraveltimeAPIResponse <- function(apiUrl, json){
