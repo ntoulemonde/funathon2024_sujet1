@@ -156,14 +156,33 @@ coordinates
 
 ```
 
+On teste une autre library "tmaptools" qui permet d'obtenir les coordonnées
+
+```{r}
+# On installe et on importe le package "tmaptools"
+if (!requireNamespace("tmaptools")){install.packages("tmaptools")}
+library(tmaptools)
+
+CITY_NAME <- "Lille"
+
+# On obtient les coordonnées de la ville
+coords <- geocode_OSM(CITY_NAME)
+print(coords)
+
+# On constate que la latitude et la longitude sont inversées, on les inverse
+coords <- rev(coords$coords)
+names(coords) <- c("lat", "lng")
+
+```
+
 On fait une fonction qui renvoie les coordonnées d'une ville à partir de ce nom
 
 ```{r}
 getCityCoordinates <- function(city, verbose = TRUE){
   # On obtient les coordonnées de la ville
-  coordinates <-  rowMeans(getbb(paste0(city,", France")))
+  coordinates <-  geocode_OSM(city)
   # On constate que la latitude et la longitude sont inversées, on les inverse
-  coordinates <- rev(coordinates)
+  coordinates <- rev(coordinates$coords)
   names(coordinates) <- c("lat", "lng")
   # Si verbose est TRUE, on affiche les coordonnées
   if (verbose){
