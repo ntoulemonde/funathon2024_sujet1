@@ -11,7 +11,7 @@ editor_options:
 
 # Funathon 2024 - Sujet 1
 
-Visualiser les émissions de C02 liées à une mesure de restriction de liaison aérienne relativement à des durées de trajets ferroviaires.
+Visualiser les émissions de C02 liées à une mesure de restriction de liaison aérienne relativement à des durées de trajets ferroviaires
 
 ## 1.Interaction avec l'API de routage de TravelTime
 
@@ -25,12 +25,14 @@ travelTime:
 
 On teste ensuite l'envoie d'une requête contenant un JSON à l'endpoint (i.e au lien) d'une API de TravelTime grâce au code fourni.
 
-Pour cela, on crée un JSON (en chaine de caractères) de test pour l'API de routage "routes" de TravelTime à partir de la documentation (playground disponible [ici](https://playground.traveltime.com/routes)). On teste l'API et on observe le contenu de sa réponse.
+Pour cela, on crée un JSON (en chaine de caractères) de test pour l'API de routage "routes" de TravelTime à partir de la documentation et du playground disponible [ici](https://playground.traveltime.com/routes). On teste l'API et on observe le contenu de sa réponse.
 
 *Chunk de code qui sera donnée aux participants (à l'exception des variables ROUTES_API_URL et json)*
 
 ```{r}
+# Installation des packages nécessaires indiqué dans le fichier DESCRIPTION
 devtools::install_deps()
+
 library(httr)
 library(yaml)
 
@@ -92,7 +94,7 @@ json <- '{
 }'
 
 
-# On prépare les headers
+# On prépare l'entête de la requête
 headers <- httr::add_headers("Content-Type" = "application/json",
                              "X-Application-Id" = X_API_ID,
                              "X-Api-Key" = X_API_KEY)
@@ -148,6 +150,8 @@ apiData # Très long à afficher dans les rendus Quarto
 
 ## 2.Récupération des coordonnées des villes françaises
 
+### OPTION 1 : osmdata
+
 On utilise le package "osmdata" de OpenStreetMap pour récupérer les coordonnées des villes françaises qui nous intéressent
 
 ```{r}
@@ -166,7 +170,26 @@ coordinates
 
 ```
 
-On teste une autre library "tmaptools" qui permet d'obtenir les coordonnées
+On fait une fonction qui renvoie les coordonnées d'une ville à partir de son nom
+
+```{r}
+getCityCoordinates <- function(city, verbose = TRUE){
+  # On obtient les coordonnées de la ville
+  coordinates <-  rowMeans(getbb(paste0(city,", France")))
+  # On constate que la latitude et la longitude sont inversées, on les inverse
+  coordinates <- rev(coordinates)
+  names(coordinates) <- c("lat", "lng")
+  # Si verbose est TRUE, on affiche les coordonnées
+  if (verbose){
+    cat(city, " -> (", coordinates[1],", ",coordinates[2], ")\n", sep = "")
+  }
+  return(coordinates)
+}
+```
+
+### OPTION 2 : tmaptools
+
+On utilise le package "tmaptools" pour récupérer les coordonnées des villes françaises qui nous intéressent
 
 ```{r}
 library(tmaptools)
@@ -180,10 +203,9 @@ print(coords)
 # On constate que la latitude et la longitude sont inversées, on les inverse
 coords <- rev(coords$coords)
 names(coords) <- c("lat", "lng")
-
 ```
 
-On fait une fonction qui renvoie les coordonnées d'une ville à partir de ce nom
+On fait une fonction qui renvoie les coordonnées d'une ville à partir de son nom
 
 ```{r}
 getCityCoordinates <- function(city, verbose = TRUE){
@@ -198,14 +220,13 @@ getCityCoordinates <- function(city, verbose = TRUE){
   }
   return(coordinates)
 }
-
 ```
 
 ## 3.Obtention du temps de transport entre 2 villes
 
-On crée une fonction qui prend en paramètre deux couples de coordonnées et qui renvoie un JSON (en chaine de caractères) pour l'API de routage
+On crée une fonction qui prend en paramètre deux couples de coordonnées et qui renvoie un JSON (en chaine de caractères) destiné à l'API de routage
 
-On crée un JSON (en chaine de caractères) pour l'API de routage "routes" de TravelTime à partir de la documentation (playground disponible [ici](https://playground.traveltime.com/routes)) avec les caractéristiques suivantes :
+On crée un JSON (en chaine de caractères) pour l'API de routage "routes" de TravelTime à partir de la documentation et du playground disponible [ici](https://playground.traveltime.com/routes) avec les caractéristiques suivantes :
 
 -   Lieu de départ : Variable (lat1, lng1)
 
@@ -442,7 +463,7 @@ underThresholdEmissions
 
 ## 5.Datavisualisation des données sur une carte avec le package leaflet
 
-Commencer par créer un compte sur [Stadia Maps](https://client.stadiamaps.com/signup/?utm_content=top_nav_signup&utm_source=marketing_site) afin de pouvoir accéder à leur API via des clés API. Compléter ensuite un fichier de configuration "config.yaml" comme ci-dessous pour stocker la clée API :
+Commencer par créer un compte sur [Stadia Maps](https://client.stadiamaps.com/signup/?utm_content=top_nav_signup&utm_source=marketing_site) afin de pouvoir accéder à leur API via des clés API. Compléter ensuite un fichier de configuration "config.yaml" comme ci-dessous pour stocker la clé API :
 
 ``` yaml
 stadiaMaps:
@@ -460,7 +481,7 @@ ALIDADE_SMOOTH_TILES_URL <- "https://tiles.stadiamaps.com/tiles/alidade_smooth/{
 OUTDOORS_TILES_URL <- "https://tiles.stadiamaps.com/tiles/outdoors/{z}/{x}/{y}{r}.png?api_key="
 ALIDADE_SATELLITE_TILES_URL <- "https://tiles.stadiamaps.com/tiles/alidade_satellite/{z}/{x}/{y}{r}.png?api_key="
 
-# On passe la clé API dans les URL des tuiles
+# On passe la clée API dans les URL des tuiles
 TILES_URL <- paste0(ALIDADE_SMOOTH_TILES_URL, STADIA_MAPS_API_KEY)
 ```
 
@@ -496,7 +517,11 @@ leafletMap <- leaflet() %>%
   addTiles(urlTemplate = TILES_URL)
 ```
 
-On boucle pour ajouter toutes les lignes repérées à la carte : - Si les émissions sont non-nulles, on les affiche en rouge avec une épaisseur de trait proportionnelle aux émissions - Si les émissions sont nulles, on les affiche en noir en trait fin
+On boucle pour ajouter toutes les lignes repérées à la carte :
+
+-   Si les émissions sont non-nulles, on les affiche en rouge avec une épaisseur de trait proportionnelle aux émissions
+
+-   Si les émissions sont nulles, on les affiche en noir en trait fin
 
 ```{r}
 for (i in 1:nrow(emissionByRouteDf)) {
@@ -555,7 +580,7 @@ leafletMap
 
 ## Interaction avec l'API d'isochrones de TravelTime
 
-On créé un JSON (en chaine de caractères) pour l'API "isochrones" de TravelTime à partir de la documentation (playground disponible [ici](https://playground.traveltime.com/isochrones)) avec les caractéristiques suivantes :
+On créé un JSON (en chaine de caractères) pour l'API "isochrones" de TravelTime à partir de la documentation et du playground disponible [ici](https://playground.traveltime.com/isochrones) avec les caractéristiques suivantes :
 
 -   Lieu : Centre de Paris (48.8534, 2.3483)
 
@@ -563,7 +588,7 @@ On créé un JSON (en chaine de caractères) pour l'API "isochrones" de TravelTi
 
 -   Mode de transport : Transport public (bus, métro, tram, train)
 
--   Date et heure : 2024-03-17 à 18h00 UTC
+-   Date et heure : 2024-04-05 à 18h00 UTC
 
 -   Flexibilité : 1h00
 
@@ -578,7 +603,7 @@ json <- '{
         "lat": 48.8534,
         "lng": 2.3483
       },
-      "departure_time": "2024-03-17T18:00:00.000Z",
+      "departure_time": "2024-04-05T18:00:00.000Z",
       "travel_time": 3600,
       "transportation": {
         "type": "public_transport",
@@ -709,7 +734,7 @@ leafletMap
 
 ## Interaction avec l'API de matrices temporelles de TravelTime
 
-On crée un JSON (en chaine de caractères) pour l'API "travel time distance matrix" de TravelTime à partir de la documentation (playground disponible [ici](https://playground.traveltime.com/travel-time-distance-matrix)) avec les caractéristiques suivantes :
+On crée un JSON (en chaine de caractères) pour l'API "travel time distance matrix" de TravelTime à partir de la documentation et du playground disponible [ici](https://playground.traveltime.com/travel-time-distance-matrix) avec les caractéristiques suivantes :
 
 -   Lieu de départ : Paris (48.8534, 2.3483)
 
@@ -719,7 +744,7 @@ On crée un JSON (en chaine de caractères) pour l'API "travel time distance mat
 
 -   Mode de transport : Transport public (bus, métro, tram, train)
 
--   Date et heure : 2024-03-17 à 18h00 UTC
+-   Date et heure : 2024-04-05 à 18h00 UTC
 
 -   Flexibilité : 12h00
 
@@ -782,7 +807,7 @@ json <- '{
         "toulouse"
       ],
       "departure_location_id": "starting-location",
-      "departure_time": "2024-03-17T18:00:00.000Z",
+      "departure_time": "2024-04-05T18:00:00.000Z",
       "travel_time": 14400,
       "properties": [
         "travel_time"
