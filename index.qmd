@@ -18,7 +18,7 @@ Visualiser les émissions de C02 liées à une mesure de restriction de liaison 
 Commencer par créer un compte sur [TravelTime](https://account.traveltime.com/) afin de pouvoir accéder à leur API via des clés API. Créer ensuite un fichier de configuration "config.yaml" structuré comme ci-dessous pour stocker les clés API :
 
 ``` yaml
-traveltime:
+travelTime:
   X_API_ID: "votre_id_api_ici"
   X_API_KEY: "votre_clé_api_ici"
 ```
@@ -36,8 +36,8 @@ library(yaml)
 
 # On lit les clés API dans le fichier de configuration
 secrets <- yaml::read_yaml("config.yaml")
-X_API_ID <- secrets$traveltime$X_API_ID
-X_API_KEY <- secrets$traveltime$X_API_KEY
+X_API_ID <- secrets$travelTime$X_API_ID
+X_API_KEY <- secrets$travelTime$X_API_KEY
 
 # On copie-colle l'endpoint de l'API de routage
 ROUTES_API_URL <- "https://api.traveltimeapp.com/v4/routes"
@@ -445,7 +445,7 @@ underThresholdEmissions
 Commencer par créer un compte sur [Stadia Maps](https://client.stadiamaps.com/signup/?utm_content=top_nav_signup&utm_source=marketing_site) afin de pouvoir accéder à leur API via des clés API. Compléter ensuite un fichier de configuration "config.yaml" comme ci-dessous pour stocker la clée API :
 
 ``` yaml
-stadia_maps:
+stadiaMaps:
   API_KEY: "votre_clé_api_ici"
 ```
 
@@ -454,7 +454,7 @@ On met dans des variables globales la clé API de Stadia Maps et les liens des t
 ```{r}
 library(leaflet)
 
-STADIA_MAPS_API_KEY <- yaml::read_yaml("config.yaml")$stadia_maps$API_KEY
+STADIA_MAPS_API_KEY <- yaml::read_yaml("config.yaml")$stadiaMaps$API_KEY
 
 ALIDADE_SMOOTH_TILES_URL <- "https://tiles.stadiamaps.com/tiles/alidade_smooth/{z}/{x}/{y}{r}.png?api_key="
 OUTDOORS_TILES_URL <- "https://tiles.stadiamaps.com/tiles/outdoors/{z}/{x}/{y}{r}.png?api_key="
@@ -669,7 +669,7 @@ On entre la clé API de Stadia Maps (créér un compte [ici](https://client.stad
 ```{r}
 library(leaflet)
 
-STADIA_MAPS_API_KEY <- "e6f6cfad-a662-4589-b060-1d7eed6d88a3"
+STADIA_MAPS_API_KEY <- yaml::read_yaml("config.yaml")$stadiaMaps$API_KEY
 
 ALIDADE_SMOOTH_TILES_URL <- "https://tiles.stadiamaps.com/tiles/alidade_smooth/{z}/{x}/{y}{r}.png?api_key="
 OUTDOORS_TILES_URL <- "https://tiles.stadiamaps.com/tiles/outdoors/{z}/{x}/{y}{r}.png?api_key="
