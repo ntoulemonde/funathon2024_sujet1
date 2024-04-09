@@ -15,28 +15,33 @@ Visualiser les émissions de C02 liées à une mesure de restriction de liaison 
 
 ## 1.Interaction avec l'API de routage de TravelTime
 
-Commencer par créer un compte sur [TravelTime](https://account.traveltime.com/) afin de pouvoir accéder à leur API via des clés API.
+Commencer par créer un compte sur [TravelTime](https://account.traveltime.com/) afin de pouvoir accéder à leur API via des clés API. On créera ensuite un fichier de configuration "config.yaml" structuré comme ci-dessous pour stocker les clés API :
+
+```yaml
+traveltime:
+  X_API_ID: "votre_id_api_ici"
+  X_API_KEY: "votre_clé_api_ici"
+```
 
 On teste ensuite l'envoie d'une requête contenant un JSON à l'endpoint (i.e au lien) d'une API de TravelTime grâce au code fourni.
 
 Pour cela, on crée un JSON (en chaine de caractères) de test pour l'API de routage "routes" de TravelTime à partir de la documentation (playground disponible [ici](https://playground.traveltime.com/routes)). On teste l'API et on observe le contenu de sa réponse.
 
-*Chunk de code qui sera donnée aux participants (à l'exception des 4 variables données initialement)*
+*Chunk de code qui sera donnée aux participants (à l'exception des variables ROUTES_API_URL et json)*
 
 ```{r}
 devtools::install_deps()
-```
-
-```{r}
 library(httr)
 library(yaml)
 
-ROUTES_API_URL <- "https://api.traveltimeapp.com/v4/routes"
-
+# On lit les clés API dans le fichier de configuration
 secrets <- yaml::read_yaml("config.yaml")
 X_API_ID <- secrets$traveltime$X_API_ID
 X_API_KEY <- secrets$traveltime$X_API_KEY
 
+ROUTES_API_URL <- "https://api.traveltimeapp.com/v4/routes"
+
+# On copie-colle un JSON de test du playground de l'API de routage de TravelTime
 json <- '{
   "locations": [
     {
