@@ -477,8 +477,8 @@ emissionByRouteDf <- data.frame(city1 = character(), city2 = character(), lat1 =
 
 for (route in underThresholdRoutes){
   # On récupère les coordonnées des villes
-  coordinates1 <- getCityCoordinates(route[1], verbose = FALSE)
-  coordinates2 <- getCityCoordinates(route[2], verbose = FALSE)
+  coordinates1 <- getStationCoordinates(route[1], verbose = FALSE)
+  coordinates2 <- getStationCoordinates(route[2], verbose = FALSE)
   
   # On utilise strsplit pour récupérer le nom de la ville associé à une gare
   city1 <- strsplit(route[1], "-")[[1]][1]
