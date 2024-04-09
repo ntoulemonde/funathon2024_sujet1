@@ -203,6 +203,7 @@ print(coords)
 # On constate que la latitude et la longitude sont inversées, on les inverse
 coords <- rev(coords$coords)
 names(coords) <- c("lat", "lng")
+coords
 ```
 
 On fait une fonction qui renvoie les coordonnées d'une ville à partir de son nom
@@ -220,6 +221,51 @@ getCityCoordinates <- function(city, verbose = TRUE){
   }
   return(coordinates)
 }
+```
+
+### OPTION 3 : Base de donnée externe des gares
+
+Pour palier au problème de coordonnées induit par les méthodes précédentes on utilise une base de donnée externe avec les coordonnées géographiques des gares françaises qui se situe [ici](https://www.data.gouv.fr/fr/datasets/liste-des-gares/)
+
+```{r}
+library(dplyr)
+
+# On charge les données
+stationsData <- read.csv2("https://www.data.gouv.fr/fr/datasets/r/d22ba593-90a4-4725-977c-095d1f654d28")
+
+STATION_NAME <- "Lille-Flandres"
+
+# On conserve et on renomme les données utiles
+stationsData <- stationsData %>% 
+  select(libelle, commune, x_wgs84, y_wgs84) %>% 
+  rename("lng" = x_wgs84, "lat"=y_wgs84)
+
+# On obtient les coordonnées de la gare
+stationData <- stationsData %>% 
+  filter(libelle == STATION_NAME)
+
+# On converti et on ordonne les coordonnées
+coords <- c(as.numeric(stationData$lat[1]),as.numeric(stationData$lng[1]))
+coords
+```
+
+On généralise le cas précédent à l'aide d'une fonction renvoyant les coordonnées de la gare d'une ville demandée
+
+*Appeler la fonction 'getStationCoordinates' si on choisi cette option*
+
+```{r}
+getCityCoordinates <- function(gare, verbose = TRUE){
+  data <- stationsData %>% 
+    filter(libelle == gare)
+  
+  coords <- c(as.numeric(data$lat[1]),as.numeric(data$lng[1]))
+  # Si verbose est TRUE, on affiche les coordonnées
+  if (verbose){
+    cat(gare, " -> (", coords[1],", ",coords[2], ")\n", sep = "")
+  }
+  return(coords)
+}
+getCityCoordinates("Toulouse-Matabiau")
 ```
 
 ## 3.Obtention du temps de transport entre 2 villes
