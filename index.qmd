@@ -15,9 +15,9 @@ Visualiser les émissions de C02 liées à une mesure de restriction de liaison 
 
 ## 1.Interaction avec l'API de routage de TravelTime
 
-Commencer par créer un compte sur [TravelTime](https://account.traveltime.com/) afin de pouvoir accéder à leur API via des clés API. On créera ensuite un fichier de configuration "config.yaml" structuré comme ci-dessous pour stocker les clés API :
+Commencer par créer un compte sur [TravelTime](https://account.traveltime.com/) afin de pouvoir accéder à leur API via des clés API. Créer ensuite un fichier de configuration "config.yaml" structuré comme ci-dessous pour stocker les clés API :
 
-```yaml
+``` yaml
 traveltime:
   X_API_ID: "votre_id_api_ici"
   X_API_KEY: "votre_clé_api_ici"
@@ -39,9 +39,10 @@ secrets <- yaml::read_yaml("config.yaml")
 X_API_ID <- secrets$traveltime$X_API_ID
 X_API_KEY <- secrets$traveltime$X_API_KEY
 
+# On copie-colle l'endpoint de l'API de routage
 ROUTES_API_URL <- "https://api.traveltimeapp.com/v4/routes"
 
-# On copie-colle un JSON de test du playground de l'API de routage de TravelTime
+# On copie-colle un JSON de test du playground de l'API de routage
 json <- '{
   "locations": [
     {
@@ -76,7 +77,7 @@ json <- '{
       "arrival_location_ids": [
         "point-to-1"
       ],
-      "departure_time": "2024-03-17T18:00:00.000Z",
+      "departure_time": "2024-04-05T18:00:00.000Z",
       "properties": [
         "travel_time",
         "route"
@@ -103,8 +104,8 @@ content <- httr::content(response)
 code <- httr::status_code(response)
 
 #View(content) # Ne marche pas pour les rendus Quarto
-#content # Très long à afficher dans les rendus Quarto
-#code
+content # Très long à afficher dans les rendus Quarto
+code
 ```
 
 On encapsule le code précédent dans une fonction qui envoie une requête contenant un JSON (en chaine de caractères) à l'endpoint d'une API de TravelTime et qui renvoie le contenu et le code de la réponse de l'API
@@ -150,8 +151,6 @@ apiData # Très long à afficher dans les rendus Quarto
 On utilise le package "osmdata" de OpenStreetMap pour récupérer les coordonnées des villes françaises qui nous intéressent
 
 ```{r}
-# On installe et on importe le package "osmdata"
-if (!requireNamespace("osmdata")){install.packages("osmdata")}
 library(osmdata)
 
 CITY_NAME <- "Lille"
@@ -170,8 +169,6 @@ coordinates
 On teste une autre library "tmaptools" qui permet d'obtenir les coordonnées
 
 ```{r}
-# On installe et on importe le package "tmaptools"
-if (!requireNamespace("tmaptools")){install.packages("tmaptools")}
 library(tmaptools)
 
 CITY_NAME <- "Lille"
@@ -210,13 +207,13 @@ On crée une fonction qui prend en paramètre deux couples de coordonnées et qu
 
 On crée un JSON (en chaine de caractères) pour l'API de routage "routes" de TravelTime à partir de la documentation (playground disponible [ici](https://playground.traveltime.com/routes)) avec les caractéristiques suivantes :
 
--   Lieu de départ : Paris (48.8534, 2.3483)
+-   Lieu de départ : Variable (lat1, lng1)
 
--   Lieu d'arrivée : Toulouse (43.6044, 1.4442)
+-   Lieu d'arrivée : Variable (lat2, lng2)
 
 -   Mode de transport : Transport public (bus, métro, tram, train)
 
--   Date et heure : 2024-03-17 à 18h00 UTC
+-   Date et heure : 2024-04-05 à 18h00 UTC
 
 -   Flexibilité : 12h00
 
@@ -259,7 +256,7 @@ getRoutesApiJson <- function(lat1, lng1, lat2, lng2){
         "arrival_location_ids": [
           "point-to-1"
         ],
-        "departure_time": "2024-03-17T18:00:00.000Z",
+        "departure_time": "2024-04-05T18:00:00.000Z",
         "properties": [
           "travel_time",
           "route"
@@ -276,7 +273,7 @@ getRoutesApiJson <- function(lat1, lng1, lat2, lng2){
 }
 ```
 
-On crée une fonction qui prend en paramètre les noms de 2 villes et qui renvoie le temps de transport en heure entre ces 2 villes. On prendra soin de gérer le cas où aucun itinéraire n'est trouvé en renvoyant 'Inf'
+On crée une fonction qui prend en paramètre les noms de 2 villes et qui renvoie le temps de transport en heure entre ces 2 villes. On prendra soin de gérer le cas où aucun itinéraire n'est trouvé en renvoyant 'Inf'.
 
 ```{r}
 getTravelTimeBetweenCities <- function(city1, city2, verbose = TRUE){
@@ -330,18 +327,13 @@ getTravelTimeBetweenCities <- function(city1, city2, verbose = TRUE){
     return(travelTime)
   }
 }
-
-# test lille
-jsonLilleParis <- getRoutesApiJson(50.63104, 3.046846,43.6044,1.4442)
-response2 <- getTraveltimeAPIResponse(ROUTES_API_URL, jsonLilleParis)
-content2 <- response2[[1]]
 ```
 
 On teste la fonction avec Toulouse et Paris
 
 ```{r}
-timeTravels <- getTravelTimeBetweenCities("Toulouse", "Paris")
-timeTravels
+travelTime <- getTravelTimeBetweenCities("Toulouse", "Paris")
+travelTime
 ```
 
 On fait une matrice temporelle entre les 5 plus grandes agglomérations françaises
@@ -392,7 +384,6 @@ underThresholdRoutes
 On télécharge les données de trafic aérien des liaisons en 2019 de la DGAC en opendata [ici](https://www.data.gouv.fr/fr/datasets/trafic-aerien-commercial-mensuel-francais-par-paire-daeroports-par-sens-depuis-1990/)
 
 ```{r}
-if (!requireNamespace("dplyr")){install.packages("dplyr")}
 library(dplyr)
 
 AIR_TRAFIC_DATA_URL <- "https://www.data.gouv.fr/fr/datasets/r/0c0a451e-983b-4f06-9627-b5ff1bccd2fc" 
@@ -451,15 +442,19 @@ underThresholdEmissions
 
 ## 5.Datavisualisation des données sur une carte avec le package leaflet
 
-Commencer par créer un compte sur [Stadia Maps](https://client.stadiamaps.com/signup/?utm_content=top_nav_signup&utm_source=marketing_site) afin de pouvoir accéder à leur API via des clés API.
+Commencer par créer un compte sur [Stadia Maps](https://client.stadiamaps.com/signup/?utm_content=top_nav_signup&utm_source=marketing_site) afin de pouvoir accéder à leur API via des clés API. Compléter ensuite un fichier de configuration "config.yaml" comme ci-dessous pour stocker la clée API :
+
+``` yaml
+stadia_maps:
+  API_KEY: "votre_clé_api_ici"
+```
 
 On met dans des variables globales la clé API de Stadia Maps et les liens des tuiles Stadia Maps pour les fonds de carte (URL de fonds de carte [ici](https://stadiamaps.com/themes/))
 
 ```{r}
-if (!requireNamespace("leaflet")){install.packages("leaflet")}
 library(leaflet)
 
-STADIA_MAPS_API_KEY <- "e6f6cfad-a662-4589-b060-1d7eed6d88a3"
+STADIA_MAPS_API_KEY <- yaml::read_yaml("config.yaml")$stadia_maps$API_KEY
 
 ALIDADE_SMOOTH_TILES_URL <- "https://tiles.stadiamaps.com/tiles/alidade_smooth/{z}/{x}/{y}{r}.png?api_key="
 OUTDOORS_TILES_URL <- "https://tiles.stadiamaps.com/tiles/outdoors/{z}/{x}/{y}{r}.png?api_key="
@@ -672,7 +667,6 @@ for (i in 1:length(apiData)){
 On entre la clé API de Stadia Maps (créér un compte [ici](https://client.stadiamaps.com/signup/?utm_content=top_nav_signup&utm_source=marketing_site)) et on entre les liens des tuiles Stadia Maps pour les fonds de carte (autres URL de fonds de carte [ici](https://stadiamaps.com/themes/))
 
 ```{r}
-if (!requireNamespace("leaflet")){install.packages("leaflet")}
 library(leaflet)
 
 STADIA_MAPS_API_KEY <- "e6f6cfad-a662-4589-b060-1d7eed6d88a3"
@@ -834,8 +828,6 @@ apiData # Très long à afficher dans les rendus Quarto
 ## Morceau de code pour un affichage plus proprement des données JSON de taille importante reçu par les API
 
 ```{r}
-# Package pour afficher les données JSON proprement utilisé plus tard
-if (!requireNamespace("jsonlite")){install.packages("jsonlite")}
 library(jsonlite)
 
 # Fonction pour tronquer les listes JSON pour les rendre plus lisibles
