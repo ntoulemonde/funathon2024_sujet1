@@ -45,6 +45,8 @@ Nous vous proposons de travailler dans les chunks proposés et d'en créer d'aut
 
 La première étape en Quarto est de créer un *chunk* de setup qui télécharge et installe les packages nécessaires au bon déroulement de ce sujet (*httr*, *yaml*, *osmdata*, *tmaptools*, *dplyr*, *leaflet* et *jsonlite*)
 
+*Chunk de code qui sera donnée aux participants*
+
 ```{r}
 # Installation des packages nécessaires indiqué dans le fichier DESCRIPTION
 devtools::install_deps()
@@ -52,7 +54,17 @@ devtools::install_deps()
 
 ## 1.Interaction avec l'API de routage de TravelTime
 
-Commencer par créer un compte sur [TravelTime](https://account.traveltime.com/) afin de pouvoir accéder à leur API via des clés API. Créer ensuite un fichier de configuration "config.yaml" structuré comme ci-dessous pour stocker les clés API :
+La première partie du sujet consiste à interroger basiquement l'API de routage de TravelTime qui permet obtenir des données de temps de trajet entre deux points définis par leurs coordoonées géographiques.
+
+Les deux prochains chunks de code vous sont donnés, ils permettent l'envoie d'une requête contenant un JSON à l'endpoint (i.e au lien) d'une API de TravelTime afin de récupérer les données de temps de trajet.
+
+::: {note}
+**Note** : *Qu'est ce qu'une API ?* C'est une interface logicielle (Application Programming Interface) qui permet à des applications de communiquer entre elles. Ces interfaces utilisent en général des requêtes HTTP contenant des JSON pour envoyer et recevoir des données.
+:::
+
+Commencer par créer un compte sur [TravelTime](https://account.traveltime.com/) afin de pouvoir accéder à leur API via des clés API.
+
+Créer ensuite un fichier de configuration "config.yaml" structuré comme ci-dessous pour stocker les clés API :
 
 ``` yaml
 travelTime:
@@ -60,9 +72,18 @@ travelTime:
   X_API_KEY: "votre_clé_api_ici"
 ```
 
-On teste ensuite l'envoie d'une requête contenant un JSON à l'endpoint (i.e au lien) d'une API de TravelTime grâce au code fourni.
+::: {note}
+**Note** : *Qu'est ce qu'un fichier yaml ?* C'est un format de fichier simplifié qui permet de stocker des données structurées à la manière d'un fomart CSV, JSON ou XML. Il est souvent utilisé pour stocker des configurations de programme.
+:::
 
-Pour cela, on crée un JSON (en chaine de caractères) de test pour l'API de routage "routes" de TravelTime à partir de la documentation et du playground disponible [ici](https://playground.traveltime.com/routes). On teste l'API et on observe le contenu de sa réponse.
+On teste ensuite l'envoie d'une requête HTTP contenant un JSON à l'endpoint (i.e au lien) d'une API de TravelTime grâce au code fourni.
+
+Pour cela, à partir de la documentation et du playground de l'API de routage disponible [ici](https://playground.traveltime.com/routes) :
+
+-   compléter la variable *ROUTES_API_URL* du chunk ci-dessous par l'endpoint de l'API de routage
+-   compléter la variable *json* du chunk ci-dessous par JSON de test (en chaine de caractères) pour l'API de routage
+
+Tester l'API et observer le contenu et le code de la réponse grâce au chunk de code fourni ci-dessous.
 
 *Chunk de code qui sera donnée aux participants (à l'exception des variables ROUTES_API_URL et json)*
 
@@ -113,7 +134,7 @@ json <- '{
       "arrival_location_ids": [
         "point-to-1"
       ],
-      "departure_time": "2024-04-05T18:00:00.000Z",
+      "departure_time": "2024-05-05T18:00:00.000Z",
       "properties": [
         "travel_time",
         "route"
@@ -164,7 +185,7 @@ getTraveltimeAPIResponse <- function(apiUrl, json){
 }
 ```
 
-On teste la fonction avec le json précédent et on regarde le contenu de la réponse de l'API
+Tester la fonction *getTraveltimeAPIResponse* avec l'endpoint et le json de test précédents et analyser le contenu de la réponse de l'API
 
 ```{r}
 response <- getTraveltimeAPIResponse(ROUTES_API_URL, json)
@@ -172,7 +193,7 @@ response <- getTraveltimeAPIResponse(ROUTES_API_URL, json)
 response # Très long à afficher dans les rendus Quarto
 ```
 
-Après observation du contenu de la réponse, on extrait les données utiles de celui-ci
+Après analyse du contenu de la réponse, extraire les données utiles de celui-ci
 
 ```{r}
 apiData <- response[[1]]$results[[1]]$locations[[1]]$properties
@@ -182,7 +203,13 @@ apiData # Très long à afficher dans les rendus Quarto
 
 ## 2.Récupération des coordonnées des villes françaises
 
-Pour palier au problème de coordonnées induit par les méthodes précédentes on utilise une base de donnée externe avec les coordonnées géographiques des gares françaises qui se situe [ici](https://www.data.gouv.fr/fr/datasets/liste-des-gares/)
+Le but de la seconde partie du sujet est de récupérer les coordonnées géographiques des gares de gares françaises à partir d'une base de données publique.
+
+Utiliser la base de donnée publique de [data.gouv.fr](https://www.data.gouv.fr/fr/datasets/liste-des-gares/) qui contient (entre autres) les coordonnées géographiques des gares françaises afin d'extraire un couple de coordonnées (latitude, longitude) à partir d'un nom de gare.
+
+::: {note}
+**Note** : *Comment télécharger un CSV dans un programe R ?* Il suffit de copier-coller le lien de téléchargement d'un fichier CSV dans la fonction *read.csv* ou *read.csv2* (exemple : *read.csv("lien_de_téléchargement")*)
+:::
 
 ```{r}
 library(dplyr)
@@ -208,9 +235,7 @@ coords <- c(as.numeric(stationData$lat[1]),as.numeric(stationData$lng[1]))
 coords
 ```
 
-On généralise le cas précédent à l'aide d'une fonction renvoyant les coordonnées de la gare d'une ville demandée
-
-*Appeler la fonction 'getStationCoordinates' si on choisi cette option*
+Encapsuler le code précédent dans une fonction renvoyant les coordonnées d'une gare à partir de la chaîne de caractères du nom de la gare
 
 ```{r}
 getStationCoordinates <- function(station, verbose = TRUE){
@@ -237,9 +262,11 @@ getStationCoordinates("Toulouse-Matabiau")
 
 ## 3.Obtention du temps de transport entre 2 villes
 
-On crée une fonction qui prend en paramètre deux couples de coordonnées et qui renvoie un JSON (en chaine de caractères) destiné à l'API de routage
+L'objectif de la partie 3 est de récupérer le temps de transport entre deux gares à partir de leur nom en combinant la fonction *getTraveltimeAPIResponse* donnée dans la partie 1 et la fonction créée en partie 2
 
-On crée un JSON (en chaine de caractères) pour l'API de routage "routes" de TravelTime à partir de la documentation et du playground disponible [ici](https://playground.traveltime.com/routes) avec les caractéristiques suivantes :
+Dans un premier temps, crée une fonction qui prend en paramètre deux couples de coordonnées et qui renvoie un JSON (en chaine de caractères) destiné à l'API de routage en faisant de la concaténation de chaînes de caractères
+
+Crée un JSON (en chaine de caractères) pour l'API de routage "routes" de TravelTime à partir de la documentation et du playground disponible [ici](https://playground.traveltime.com/routes) avec les caractéristiques ci-dessous afin qu'il servent de base pour cette fonction :
 
 -   Lieu de départ : Variable (lat1, lng1)
 
@@ -247,7 +274,7 @@ On crée un JSON (en chaine de caractères) pour l'API de routage "routes" de Tr
 
 -   Mode de transport : Transport public (bus, métro, tram, train)
 
--   Date et heure : 2024-04-05 à 18h00 UTC
+-   Date et heure : 2024-05-05 à 18h00 UTC
 
 -   Flexibilité : 12h00
 
@@ -290,7 +317,7 @@ getRoutesApiJson <- function(lat1, lng1, lat2, lng2){
         "arrival_location_ids": [
           "point-to-1"
         ],
-        "departure_time": "2024-04-05T18:00:00.000Z",
+        "departure_time": "2024-05-05T18:00:00.000Z",
         "properties": [
           "travel_time",
           "route"
@@ -307,7 +334,7 @@ getRoutesApiJson <- function(lat1, lng1, lat2, lng2){
 }
 ```
 
-On crée une fonction qui prend en paramètre les noms de 2 villes et qui renvoie le temps de transport en heure entre ces 2 villes. On prendra soin de gérer le cas où aucun itinéraire n'est trouvé en renvoyant 'Inf'.
+Maintenant, en utilisant la fonction précédement écrite, créer une fonction qui prend en paramètre deux noms de gares et qui renvoie le temps de transport en heure du trajet le plus court entre ces 2 gares. Il faudra prendre soin de gérer le cas où aucun trajet n'est trouvé en renvoyant *Inf*.
 
 ```{r}
 getTravelTimeBetweenStations <- function(station1, station2, verbose = TRUE){
@@ -363,14 +390,20 @@ getTravelTimeBetweenStations <- function(station1, station2, verbose = TRUE){
 }
 ```
 
-On teste la fonction avec Paris-Montparnasse et Toulouse-Matabiau
+Tester la fonction avec Paris-Montparnasse et Toulouse-Matabiau
 
 ```{r}
 travelTime <- getTravelTimeBetweenStations("Paris-Montparnasse", "Toulouse-Matabiau")
 travelTime
 ```
 
-On fait une matrice temporelle entre les 10 plus grandes agglomérations françaises
+Faire une matrice temporelle des temps de trajet entre les gares des 10 plus grandes agglomérations françaises (on considerera que la matrice est symétrique pour la compléter plus rapidement)
+
+La liste des noms des gares principales (telle qu'écrite dans la base de données publique) des 10 plus grandes agglomérations françaises est la suivante : Paris-Nord, Lyon-Perrache, Marseille-St-Charles, Toulouse-Matabiau, Lille-Flandres, Bordeaux-St-Jean, Nice-Ville, Nantes, Strasbourg-Ville et Montpellier-St-Roch
+
+::: {ATTENTION}
+**ATTENTION** : *L'API de routage de TravelTime a un quota de requêtes par minute :* Si la fonction *getTraveltimeAPIResponse* donnée dans la partie 1 renvoie le code *429*, cela signifie que vous avez dépassé le quota de requêtes par minute. Dans ce cas, attendez une minute avec la fonction *Sys.sleep(60)* avant de relancer la fonction précédement écrite.
+:::
 
 ```{r}
 # Top 5 des gares principales des plus grandes agglomérations françaises
@@ -394,7 +427,7 @@ for (i in 1:length(stations)){
 timeMatrix
 ```
 
-On crée une liste avec les couples des gares reliées par un temps de trajet inférieur à 4h30
+Créer une liste avec les couples des gares reliées par un temps de trajet inférieur à 4h30
 
 ```{r}
 THRESHOLD <- 4.5
