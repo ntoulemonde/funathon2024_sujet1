@@ -203,13 +203,25 @@ apiData # Très long à afficher dans les rendus Quarto
 
 ## 2.Récupération des coordonnées des villes françaises
 
-Le but de la seconde partie du sujet est de récupérer les coordonnées géographiques des gares de gares françaises à partir d'une base de données publique.
+Le but de la seconde partie du sujet est de récupérer les coordonnées géographiques des gares de gares françaises à partir d'une base de données en opendata.
 
-Utiliser la base de donnée publique de [data.gouv.fr](https://www.data.gouv.fr/fr/datasets/liste-des-gares/) qui contient (entre autres) les coordonnées géographiques des gares françaises afin d'extraire un couple de coordonnées (latitude, longitude) à partir d'un nom de gare.
+Télécharger et observer les données sur les gares françaises en opendata [ici](https://www.data.gouv.fr/fr/datasets/liste-des-gares/)
 
 ::: {note}
 **Note** : *Comment télécharger un CSV dans un programe R ?* Il suffit de copier-coller le lien de téléchargement d'un fichier CSV dans la fonction *read.csv* ou *read.csv2* (exemple : *read.csv("lien_de_téléchargement")*)
 :::
+
+```{r}
+library(dplyr)
+
+STATIONS_DATA_URL <- "https://www.data.gouv.fr/fr/datasets/r/d22ba593-90a4-4725-977c-095d1f654d28"
+
+stationsData <- read.csv2(STATIONS_DATA_URL)
+
+head(stationsData)
+```
+
+Utiliser cette base de données qui contient (entre autres) les coordonnées géographiques des gares françaises afin d'extraire un couple de coordonnées (latitude, longitude) à partir d'un nom de gare.
 
 ```{r}
 library(dplyr)
@@ -266,7 +278,7 @@ L'objectif de la partie 3 est de récupérer le temps de transport entre deux ga
 
 Dans un premier temps, crée une fonction qui prend en paramètre deux couples de coordonnées et qui renvoie un JSON (en chaine de caractères) destiné à l'API de routage en faisant de la concaténation de chaînes de caractères
 
-Crée un JSON (en chaine de caractères) pour l'API de routage "routes" de TravelTime à partir de la documentation et du playground disponible [ici](https://playground.traveltime.com/routes) avec les caractéristiques ci-dessous afin qu'il servent de base pour cette fonction :
+Créer un JSON (en chaine de caractères) pour l'API de routage "routes" de TravelTime à partir de la documentation et du playground disponible [ici](https://playground.traveltime.com/routes) avec les caractéristiques ci-dessous afin qu'il servent de base pour cette fonction :
 
 -   Lieu de départ : Variable (lat1, lng1)
 
@@ -334,7 +346,7 @@ getRoutesApiJson <- function(lat1, lng1, lat2, lng2){
 }
 ```
 
-Maintenant, en utilisant la fonction précédement écrite, créer une fonction qui prend en paramètre deux noms de gares et qui renvoie le temps de transport en heure du trajet le plus court entre ces 2 gares. Il faudra prendre soin de gérer le cas où aucun trajet n'est trouvé en renvoyant *Inf*.
+Maintenant, en utilisant la fonction précédement écrite, le but est de créer une fonction qui prend en paramètre deux noms de gares et qui renvoie le temps de transport en heure du trajet le plus court entre ces 2 gares. Il faudra prendre soin de gérer le cas où aucun trajet n'est trouvé en renvoyant *Inf*.
 
 ```{r}
 getTravelTimeBetweenStations <- function(station1, station2, verbose = TRUE){
@@ -399,7 +411,7 @@ travelTime
 
 Faire une matrice temporelle des temps de trajet entre les gares des 10 plus grandes agglomérations françaises (on considerera que la matrice est symétrique pour la compléter plus rapidement)
 
-La liste des noms des gares principales (telle qu'écrite dans la base de données publique) des 10 plus grandes agglomérations françaises est la suivante : Paris-Nord, Lyon-Perrache, Marseille-St-Charles, Toulouse-Matabiau, Lille-Flandres, Bordeaux-St-Jean, Nice-Ville, Nantes, Strasbourg-Ville et Montpellier-St-Roch
+La liste des noms des gares principales (telle qu'écrite dans la base de données en opendata) des 10 plus grandes agglomérations françaises est la suivante : Paris-Nord, Lyon-Perrache, Marseille-St-Charles, Toulouse-Matabiau, Lille-Flandres, Bordeaux-St-Jean, Nice-Ville, Nantes, Strasbourg-Ville et Montpellier-St-Roch
 
 ::: {ATTENTION}
 **ATTENTION** : *L'API de routage de TravelTime a un quota de requêtes par minute :* Si la fonction *getTraveltimeAPIResponse* donnée dans la partie 1 renvoie le code *429*, cela signifie que vous avez dépassé le quota de requêtes par minute. Dans ce cas, attendez une minute avec la fonction *Sys.sleep(60)* avant de relancer la fonction précédement écrite.
@@ -449,7 +461,9 @@ underThresholdRoutes
 
 ## 4.Téléchargement et traitement des données de trafic aérien entre 2 aéroports
 
-On télécharge les données de trafic aérien des liaisons en 2019 de la DGAC en opendata [ici](https://www.data.gouv.fr/fr/datasets/trafic-aerien-commercial-mensuel-francais-par-paire-daeroports-par-sens-depuis-1990/)
+Cette avant dernière partie du sujet consiste à télécharger et traiter des données de trafic aérien entre deux aéroports en 2019 pour calculer les émissions de CO2 du trafic aérien entre les couples de villes/de gares identifiés précédemment.
+
+Télécharger  et observer les données de trafic aérien des liaisons en 2019 de la DGAC en opendata [ici](https://www.data.gouv.fr/fr/datasets/trafic-aerien-commercial-mensuel-francais-par-paire-daeroports-par-sens-depuis-1990/)
 
 ```{r}
 library(dplyr)
@@ -461,7 +475,9 @@ airTraficDf <- read.csv2(AIR_TRAFIC_DATA_URL)
 head(airTraficDf)
 ```
 
-On crée une fonction qui renvoie le trafic total d'une liaison en 2019 en PKT à partir de deux noms de villes (et non d'aéroport) en paramètre (Les noms des principaux aéroports de métropole contiennent le nom de la ville qu'il déssert)
+#### FORME A REVOIR A PARTIR D'ICI ####
+
+Créer une fonction qui renvoie le trafic total d'une liaison en 2019 en PKT à partir de deux noms de villes (et non d'aéroport) en paramètre (Les noms des principaux aéroports de métropole contiennent le nom de la ville qu'il déssert)
 
 ```{r}
 getAirTraficBetweenCities <- function(city1, city2){
