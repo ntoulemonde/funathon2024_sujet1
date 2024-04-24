@@ -1,15 +1,14 @@
-Package: Funathon2024_isochrones
-Title: Une exploration de la cartographie par isochrones
+Package: Funathon2024_Sujet1
+Title: Visualisation des émissions de C02 de liaisons aériennes
 Version: 0.0.0.9000
 Authors@R: 
-    person("First", "Last", , "first.last@example.com", role = c("aut", "cre"),
-           comment = c(ORCID = "YOUR-ORCID-ID"))
-Description: What the package does (one paragraph).
-License: `use_mit_license()`, `use_gpl3_license()` or friends to pick a
-    license
+    c(person("Thomas", "Mallet", email = "thomas.mallet@aviation-civile.gouv.fr", role = c("aut", "cre")),
+      person("Enzo", "Pezzali", email = "enzo.pezzali@aviation-civile.gouv.fr", role = c("aut", "cre")),
+      person("Thomas", "Lechalupe", email = "thomas.lechalupe@aviation-civile.gouv.fr", role = c("aut", "cre")))
+Description:
+  Visualiser les émissions de C02 liées à une mesure de restriction de liaison aérienne relativement à des durées de trajets ferroviaires dans le cadre. L'étude portera sur les liaisons aériennes entre les 10 plus grandes agglomérations de la Métropole française. Elle permettra de quantifier et de localiser les émissions de C02 évitées avec des mesures hypothétiques d'interdictions de liaisons aériennes lorsqu'une alternative ferroviaire existe en moins de 3h30, 4h30, 5h30...
+License: License: MIT + file LICENCE
 Encoding: UTF-8
-Roxygen: list(markdown = TRUE)
-RoxygenNote: 7.3.1
 Imports: 
     httr,
     yaml,
