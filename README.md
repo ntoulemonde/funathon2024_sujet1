@@ -10,7 +10,7 @@ Visualiser les émissions de C02 liées à une mesure de restriction de liaison 
 
 3.  Obtention du temps de transport entre 2 villes
 
-4.  Téléchargement et traitement des données de trafic aérien entre 2 aéroports
+4.  Téléchargement et traitement des données de trafic aérien entre deux villes
 
 5.  Datavisualisation des données sur une carte avec le package leaflet
 

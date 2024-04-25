@@ -25,7 +25,7 @@ En travaillant sur ce sujet vous apprendrez à :
 1.  Interaction avec l'API de routage de TravelTime
 2.  Récupération des coordonnées des villes françaises
 3.  Obtention du temps de transport entre 2 villes
-4.  Téléchargement et traitement des données de trafic aérien entre 2 aéroports
+4.  Téléchargement et traitement des données de trafic aérien entre deux villes
 5.  Datavisualisation des données sur une carte avec le package leaflet
 
 ## Rappel sur l'utilisation d'un document quarto
@@ -205,15 +205,14 @@ apiData # Très long à afficher dans les rendus Quarto
 
 Le but de la seconde partie du sujet est de récupérer les coordonnées géographiques des gares de gares françaises à partir d'une base de données en opendata.
 
-Télécharger et observer les données sur les gares françaises en opendata [ici](https://www.data.gouv.fr/fr/datasets/liste-des-gares/)
+Télécharger et observer les données sur les gares françaises en opendata disponbles [ici](https://www.data.gouv.fr/fr/datasets/liste-des-gares/)
 
 ::: {note}
 **Note** : *Comment télécharger un CSV dans un programe R ?* Il suffit de copier-coller le lien de téléchargement d'un fichier CSV dans la fonction *read.csv* ou *read.csv2* (exemple : *read.csv("lien_de_téléchargement")*)
 :::
 
 ```{r}
-library(dplyr)
-
+# On charge les données
 STATIONS_DATA_URL <- "https://www.data.gouv.fr/fr/datasets/r/d22ba593-90a4-4725-977c-095d1f654d28"
 
 stationsData <- read.csv2(STATIONS_DATA_URL)
@@ -221,15 +220,10 @@ stationsData <- read.csv2(STATIONS_DATA_URL)
 head(stationsData)
 ```
 
-Utiliser cette base de données qui contient (entre autres) les coordonnées géographiques des gares françaises afin d'extraire un couple de coordonnées (latitude, longitude) à partir d'un nom de gare.
+Utiliser cette base de données qui contient, entre autres, les coordonnées géographiques des gares françaises afin d'extraire un couple de coordonnées (latitude, longitude) à partir d'un nom de gare.
 
 ```{r}
 library(dplyr)
-
-# On charge les données
-STATIONS_DATA_URL <- "https://www.data.gouv.fr/fr/datasets/r/d22ba593-90a4-4725-977c-095d1f654d28" 
-
-stationsData <- read.csv2(STATIONS_DATA_URL)
 
 STATION_NAME <- "Lille-Flandres"
 
@@ -459,15 +453,13 @@ for (i in 1:length(stations)){
 underThresholdRoutes
 ```
 
-## 4.Téléchargement et traitement des données de trafic aérien entre 2 aéroports
+## 4.Téléchargement et traitement des données de trafic aérien entre deux villes
 
-Cette avant dernière partie du sujet consiste à télécharger et traiter des données de trafic aérien entre deux aéroports en 2019 pour calculer les émissions de CO2 du trafic aérien entre les couples de villes/de gares identifiés précédemment.
+Cette avant dernière partie du sujet consiste à télécharger et traiter des données de trafic aérien entre deux aéroports en 2019 pour calculer les émissions de CO2 du trafic aérien entre les couples de villes/de gares identifiés précédemment et d'en déduire les émissions de CO2 approximatives évitées avec des mesures hypothétiques d'interdictions de liaisons aériennes.
 
-Télécharger  et observer les données de trafic aérien des liaisons en 2019 de la DGAC en opendata [ici](https://www.data.gouv.fr/fr/datasets/trafic-aerien-commercial-mensuel-francais-par-paire-daeroports-par-sens-depuis-1990/)
+Télécharger et observer les données de trafic aérien des liaisons en 2019 de la DGAC en opendata disponibles [ici](https://www.data.gouv.fr/fr/datasets/trafic-aerien-commercial-mensuel-francais-par-paire-daeroports-par-sens-depuis-1990/)
 
 ```{r}
-library(dplyr)
-
 AIR_TRAFIC_DATA_URL <- "https://www.data.gouv.fr/fr/datasets/r/0c0a451e-983b-4f06-9627-b5ff1bccd2fc" 
 
 airTraficDf <- read.csv2(AIR_TRAFIC_DATA_URL)
@@ -475,9 +467,26 @@ airTraficDf <- read.csv2(AIR_TRAFIC_DATA_URL)
 head(airTraficDf)
 ```
 
-#### FORME A REVOIR A PARTIR D'ICI ####
+Créer une fonction qui renvoie le trafic total d'une liaison en 2019 en PKT (produit du nombre de passagers et de la distance parcourue) à partir des deux noms de villes (et non d'aéroport) en paramètre
 
-Créer une fonction qui renvoie le trafic total d'une liaison en 2019 en PKT à partir de deux noms de villes (et non d'aéroport) en paramètre (Les noms des principaux aéroports de métropole contiennent le nom de la ville qu'il déssert)
+-   Les noms des principaux aéroports de métropole contiennent le nom de la ville qu'il déssert
+-   Le nombre de passagers est dans le champ *LSN_PAX_loc*
+
+::: {note}
+**Note** : Les noms des principaux aéroports de métropole contiennent le nom de la ville qu'il déssert
+:::
+
+::: {note}
+**Note** : Le nombre de passagers correspond au champ *LSN_PAX_loc*
+:::
+
+::: {ATTENTION}
+**ATTENTION** : Prendre en compte le trafic aérien dans les deux sens
+:::
+
+::: {ATTENTION}
+**ATTENTION** : Paris qui possède 2 aéroports
+:::
 
 ```{r}
 getAirTraficBetweenCities <- function(city1, city2){
@@ -496,14 +505,18 @@ getAirTraficBetweenCities <- function(city1, city2){
 }
 ```
 
-On teste la fonction avec Paris et Toulouse
+Tester la fonction avec Paris et Toulouse (Il faut trouver 1 870 474 245 PKT)
 
 ```{r}
 trafic <- getAirTraficBetweenCities("Paris", "Toulouse")
 trafic
 ```
 
-On somme le trafic aérien pour chaque couple de villes reliées par un temps de trajet inférieur à 2h30 (Les noms des principales gares de métropole contiennent le nom de la ville qu'il déssert)
+Sommer le trafic aérien pour chaque couple de villes reliées par un temps de trajet inférieur à 4h30
+
+::: {note}
+**Note** : Les noms des principales gares de métropole contiennent le nom de la ville qu'il déssert
+:::
 
 ```{r}
 underThresholdAirTrafic <- 0
@@ -517,7 +530,7 @@ for (route in underThresholdRoutes){
 underThresholdAirTrafic
 ```
 
-On calcule les émissions de CO2 que représente ce trafic avec une estimation des gCO2éq par PKT de [statista](https://www.statista.com/statistics/1113177/co2-emissions-by-airline-europe/)
+En déduire les émissions de CO2 approximatives évitées que représente ce trafic avec une estimation des gCO2éq par PKT de [statista](https://www.statista.com/statistics/1113177/co2-emissions-by-airline-europe/)
 
 ```{r}
 GCO2_PER_PKT <- 80
@@ -529,14 +542,28 @@ underThresholdEmissions
 
 ## 5.Datavisualisation des données sur une carte avec le package leaflet
 
-Commencer par créer un compte sur [Stadia Maps](https://client.stadiamaps.com/signup/?utm_content=top_nav_signup&utm_source=marketing_site) afin de pouvoir accéder à leur API via des clés API. Compléter ensuite un fichier de configuration "config.yaml" comme ci-dessous pour stocker la clé API :
+Cette dernière partie du sujet consiste à visualiser les émissions de CO2 précédemment calculées sur une carte interactive avec le package *leaflet* et des fonds de carte de *Stadia Maps* afin d'identifier visuellement les liaisons aériennes les plus émissives.
+
+Le but est d'obtenir une carte interactive qui à l'allure de celle-ci (qui a volontairement que 5 villes pour l'exemple) :
+
+::: {align="center"}
+![](Aspect_de_la_carte.png)
+:::
+
+Commencer par créer un compte sur [Stadia Maps](https://client.stadiamaps.com/signup/?utm_content=top_nav_signup&utm_source=marketing_site) afin de pouvoir accéder à leur API via des clés API.
+
+Compléter ensuite un fichier de configuration "config.yaml" comme ci-dessous pour stocker la clé API :
 
 ``` yaml
 stadiaMaps:
   API_KEY: "votre_clé_api_ici"
 ```
 
-On met dans des variables globales la clé API de Stadia Maps et les liens des tuiles Stadia Maps pour les fonds de carte (URL de fonds de carte [ici](https://stadiamaps.com/themes/))
+Mettre dans des variables globales la clé API de Stadia Maps et un lien d'une tuile Stadia Maps de votre choix pour le fond de carte (URL de fonds de carte [ici](https://stadiamaps.com/themes/))
+
+::: {note}
+**Note** : A la différence de l'API de routage de TravelTime, l'API de Stadia Maps pour obtenir un fond de carte est plus simple d'utilisation puisque la requête HTTP se fait simplement via un lien HTML (sans JSON)
+:::
 
 ```{r}
 library(leaflet)
@@ -551,7 +578,7 @@ ALIDADE_SATELLITE_TILES_URL <- "https://tiles.stadiamaps.com/tiles/alidade_satel
 TILES_URL <- paste0(ALIDADE_SMOOTH_TILES_URL, STADIA_MAPS_API_KEY)
 ```
 
-On crée un dataframe avec tous les éléments pour cartographier les émissions sur les lignes repérées (les noms, les latitudes et les longitudes des villes de départ et d'arrivée, et les émissions de CO2 des lignes associées)
+Créer un dataframe avec tous les éléments pour cartographier les émissions sur les lignes repérées (les noms, les latitudes et les longitudes des villes de départ et d'arrivée, et les émissions de CO2 des lignes associées)
 
 ```{r}
 emissionByRouteDf <- data.frame(city1 = character(), city2 = character(), lat1 = numeric(), lng1 = numeric(), lat2 = numeric(), lng2 = numeric(), emissions = numeric())
@@ -580,14 +607,14 @@ for (route in underThresholdRoutes){
 emissionByRouteDf
 ```
 
-On créé une carte de base avec le fond de carte Stadia Maps
+Créer une carte de base avec le fond de carte Stadia Maps avec la fonction *addTiles* de *leaflet*
 
 ```{r}
 leafletMap <- leaflet() %>%
   addTiles(urlTemplate = TILES_URL)
 ```
 
-On boucle pour ajouter toutes les lignes repérées à la carte :
+Faire une boucle pour ajouter toutes les lignes repérées à la carte avec la fonction *addPolylines* de *leaflet* :
 
 -   Si les émissions sont non-nulles, on les affiche en rouge avec une épaisseur de trait proportionnelle aux émissions
 
@@ -615,7 +642,7 @@ for (i in 1:nrow(emissionByRouteDf)) {
 }
 ```
 
-On boucle pour ajouter toutes les villes repérées à la carte
+Faire une boucle pour ajouter toutes les villes à la carte avec la fonction *addCircleMarkers* de *leaflet*
 
 ```{r}
 
@@ -640,7 +667,7 @@ for (i in 1:nrow(emissionByRouteDf)) {
 
 ```
 
-On affiche la carte
+Affiche la carte
 
 ```{r}
 leafletMap
