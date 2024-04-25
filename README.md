@@ -24,8 +24,6 @@ Concernant l'API de routage "routes" pour faire des itinéraires point à point 
 
 -   Elle ne permet pas de traverser de frontières.
 
-Le package "osmdata" de OpenStreetMap pour récupérer les coordonnées donne les centre-villes et pas les gares.
-
 Voir playground de l'API de routage "routes" de TravelTime [ici](#0).
 
 Voir test de *leaflet* [ici](#0).
