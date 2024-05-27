@@ -5,6 +5,7 @@ format:
   html:
     toc: true
     number-sections: true
+    css: styleForLongOutputs.css
 editor: visual
 editor_options: 
   chunk_output_type: console
@@ -35,7 +36,7 @@ Dans ce sujet nous vous proposons d'utiliser un document quarto qui est le succe
 Rstudio propose 2 manières de consulter/modifier un doc quarto :\
 - Visual : aide à la saise du Markdown et de création des chunks - Source : que du code, moins facile à prendre en main mais plus *pur*
 
-Les chunks doivent être nommées et des paramètres peuvent être précisées, voir ici : https://quarto.org/docs/computations/r.html
+Les chunks doivent être nommées et des paramètres peuvent être précisées, voir [ici](https://quarto.org/docs/computations/r.html)
 
 En haut à droite de chaque chunk vous avez 2 boutons. Le premier permet de rejouer tous les chunks qui précèdent le chunk. L'autre permet de jouer le chunk (possible aussi en faisant CTRL + MAJ + ENTREE avec le curseur dans le chunk).
 
@@ -45,9 +46,11 @@ Nous vous proposons de travailler dans les chunks proposés et d'en créer d'aut
 
 La première étape en Quarto est de créer un *chunk* de setup qui télécharge et installe les packages nécessaires au bon déroulement de ce sujet (*httr*, *yaml*, *osmdata*, *tmaptools*, *dplyr*, *leaflet* et *jsonlite*)
 
-*Chunk de code qui sera donnée aux participants*
+**Chunk de code donné aux participants**
 
 ```{r}
+#| class-output: output
+
 # Installation des packages nécessaires indiqué dans le fichier DESCRIPTION
 devtools::install_deps()
 ```
@@ -58,7 +61,7 @@ La première partie du sujet consiste à interroger basiquement l'API de routage
 
 Les deux prochains chunks de code vous sont donnés, ils permettent l'envoie d'une requête contenant un JSON à l'endpoint (i.e au lien) d'une API de TravelTime afin de récupérer les données de temps de trajet.
 
-::: {note}
+::: callout-note
 **Note** : *Qu'est ce qu'une API ?* C'est une interface logicielle (Application Programming Interface) qui permet à des applications de communiquer entre elles. Ces interfaces utilisent en général des requêtes HTTP contenant des JSON pour envoyer et recevoir des données.
 :::
 
@@ -72,7 +75,7 @@ travelTime:
   X_API_KEY: "votre_clé_api_ici"
 ```
 
-::: {note}
+::: callout-note
 **Note** : *Qu'est ce qu'un fichier yaml ?* C'est un format de fichier simplifié qui permet de stocker des données structurées à la manière d'un fomart CSV, JSON ou XML. Il est souvent utilisé pour stocker des configurations de programme.
 :::
 
@@ -85,14 +88,16 @@ Pour cela, à partir de la documentation et du playground de l'API de routage di
 
 Tester l'API et observer le contenu et le code de la réponse grâce au chunk de code fourni ci-dessous.
 
-*Chunk de code qui sera donnée aux participants (à l'exception des variables ROUTES_API_URL et json)*
+*Chunk de code donné aux participants (à l'exception des variables ROUTES_API_URL et json)*
 
 ```{r}
+#| class-output: output
+
 library(httr)
 library(yaml)
 
-# On lit les clés API dans le fichier de configuration
-secrets <- yaml::read_yaml("config.yaml")
+# On lit les clés API dans le fichier de configuration (en supprimant le warning inutile)
+secrets <- suppressWarnings({yaml::read_yaml("config.yaml")})
 X_API_ID <- secrets$travelTime$X_API_ID
 X_API_KEY <- secrets$travelTime$X_API_KEY
 
@@ -134,7 +139,7 @@ json <- '{
       "arrival_location_ids": [
         "point-to-1"
       ],
-      "departure_time": "2024-05-05T18:00:00.000Z",
+      "departure_time": "2024-06-05T18:00:00.000Z",
       "properties": [
         "travel_time",
         "route"
@@ -167,9 +172,11 @@ code
 
 On encapsule le code précédent dans une fonction qui envoie une requête contenant un JSON (en chaine de caractères) à l'endpoint d'une API de TravelTime et qui renvoie le contenu et le code de la réponse de l'API
 
-*Chunk de code qui sera donnée aux participants*
+**Chunk de code donné aux participants**
 
 ```{r}
+#| class-output: output
+
 getTraveltimeAPIResponse <- function(apiUrl, json){
   # On prépare les headers
   headers <- httr::add_headers("Content-Type" = "application/json",
@@ -187,15 +194,25 @@ getTraveltimeAPIResponse <- function(apiUrl, json){
 
 Tester la fonction *getTraveltimeAPIResponse* avec l'endpoint et le json de test précédents et analyser le contenu de la réponse de l'API
 
+**CHUNK DE CODE A ECRIRE**
+
 ```{r}
+#| echo: FALSE
+#| class-output: output
+
 response <- getTraveltimeAPIResponse(ROUTES_API_URL, json)
 #View(response) # Ne marche pas pour les rendus Quarto
 response # Très long à afficher dans les rendus Quarto
 ```
 
-Après analyse du contenu de la réponse, extraire les données utiles de celui-ci
+Après analyse du contenu de la réponse avec la fonction *View*, extraire dans une variable R la liste des descriptions des itinéraires trouvés (liste nommée *properties* dans le JSON)
+
+**CHUNK DE CODE A ECRIRE**
 
 ```{r}
+#| echo: FALSE
+#| class-output: output
+
 apiData <- response[[1]]$results[[1]]$locations[[1]]$properties
 #View(apiData) # Ne marche pas pour les rendus Quarto
 apiData # Très long à afficher dans les rendus Quarto
@@ -207,11 +224,16 @@ Le but de la seconde partie du sujet est de récupérer les coordonnées géogra
 
 Télécharger et observer les données sur les gares françaises en opendata disponbles [ici](https://www.data.gouv.fr/fr/datasets/liste-des-gares/)
 
-::: {note}
+::: callout-note
 **Note** : *Comment télécharger un CSV dans un programe R ?* Il suffit de copier-coller le lien de téléchargement d'un fichier CSV dans la fonction *read.csv* ou *read.csv2* (exemple : *read.csv("lien_de_téléchargement")*)
 :::
 
+**CHUNK DE CODE A ECRIRE**
+
 ```{r}
+#| echo: FALSE
+#| class-output: output
+
 # On charge les données
 STATIONS_DATA_URL <- "https://www.data.gouv.fr/fr/datasets/r/d22ba593-90a4-4725-977c-095d1f654d28"
 
@@ -220,9 +242,14 @@ stationsData <- read.csv2(STATIONS_DATA_URL)
 head(stationsData)
 ```
 
-Utiliser cette base de données qui contient, entre autres, les coordonnées géographiques des gares françaises afin d'extraire un couple de coordonnées (latitude, longitude) à partir d'un nom de gare.
+Utiliser cette base de données qui contient, entre autres, les coordonnées géographiques des gares françaises afin d'extraire un couple de coordonnées (latitude, longitude) à partir d'un nom de gare. Faire un test en affichant les coordonnées de la gare de Lille-Flandres.
+
+**CHUNK DE CODE A ECRIRE**
 
 ```{r}
+#| echo: FALSE
+#| class-output: output
+
 library(dplyr)
 
 STATION_NAME <- "Lille-Flandres"
@@ -241,9 +268,14 @@ coords <- c(as.numeric(stationData$lat[1]),as.numeric(stationData$lng[1]))
 coords
 ```
 
-Encapsuler le code précédent dans une fonction renvoyant les coordonnées d'une gare à partir de la chaîne de caractères du nom de la gare
+Encapsuler le code précédent dans une fonction renvoyant les coordonnées d'une gare à partir de la chaîne de caractères du nom de la gare. Faire un test en affichant les coordonnées de la gare de Toulouse-Matabiau.
+
+**CHUNK DE CODE A ECRIRE**
 
 ```{r}
+#| echo: FALSE
+#| class-output: output
+
 getStationCoordinates <- function(station, verbose = TRUE){
   
   # Cas particulier pour Strasbourg-Ville
@@ -280,13 +312,18 @@ Créer un JSON (en chaine de caractères) pour l'API de routage "routes" de Trav
 
 -   Mode de transport : Transport public (bus, métro, tram, train)
 
--   Date et heure : 2024-05-05 à 18h00 UTC
+-   Date et heure : 2024-06-05 à 18h00 UTC
 
 -   Flexibilité : 12h00
 
 -   Le reste des paramètres par défaut
 
+**CHUNK DE CODE A ECRIRE**
+
 ```{r}
+#| echo: FALSE
+#| class-output: output
+
 getRoutesApiJson <- function(lat1, lng1, lat2, lng2){
   # On créé le JSON pour l'API de routage en se basant sur celui de la sous-partie "Interaction avec l'API de routage de TravelTime"
   json <- paste0('{
@@ -323,7 +360,7 @@ getRoutesApiJson <- function(lat1, lng1, lat2, lng2){
         "arrival_location_ids": [
           "point-to-1"
         ],
-        "departure_time": "2024-05-05T18:00:00.000Z",
+        "departure_time": "2024-06-05T18:00:00.000Z",
         "properties": [
           "travel_time",
           "route"
@@ -342,7 +379,12 @@ getRoutesApiJson <- function(lat1, lng1, lat2, lng2){
 
 Maintenant, en utilisant la fonction précédement écrite, le but est de créer une fonction qui prend en paramètre deux noms de gares et qui renvoie le temps de transport en heure du trajet le plus court entre ces 2 gares. Il faudra prendre soin de gérer le cas où aucun trajet n'est trouvé en renvoyant *Inf*.
 
+**CHUNK DE CODE A ECRIRE**
+
 ```{r}
+#| echo: FALSE
+#| class-output: output
+
 getTravelTimeBetweenStations <- function(station1, station2, verbose = TRUE){
   # On récupère les coordonnées des villes
   coordinates1 <- getStationCoordinates(station1, verbose = FALSE)
@@ -372,7 +414,7 @@ getTravelTimeBetweenStations <- function(station1, station2, verbose = TRUE){
       return(travelTime)
   # Sinon
   }else{
-    # On extrait les données utiles
+    # On extrait la liste des descriptions des itinéraires trouvés
     apiData <- response[[1]]$results[[1]]$locations[[1]]$properties
     
     # On boucle sur apiData pour récupérer les temps de trajet
@@ -398,7 +440,12 @@ getTravelTimeBetweenStations <- function(station1, station2, verbose = TRUE){
 
 Tester la fonction avec Paris-Montparnasse et Toulouse-Matabiau
 
+**CHUNK DE CODE A ECRIRE**
+
 ```{r}
+#| echo: FALSE
+#| class-output: output
+
 travelTime <- getTravelTimeBetweenStations("Paris-Montparnasse", "Toulouse-Matabiau")
 travelTime
 ```
@@ -407,11 +454,16 @@ Faire une matrice temporelle des temps de trajet entre les gares des 10 plus gra
 
 La liste des noms des gares principales (telle qu'écrite dans la base de données en opendata) des 10 plus grandes agglomérations françaises est la suivante : Paris-Nord, Lyon-Perrache, Marseille-St-Charles, Toulouse-Matabiau, Lille-Flandres, Bordeaux-St-Jean, Nice-Ville, Nantes, Strasbourg-Ville et Montpellier-St-Roch
 
-::: {ATTENTION}
+::: callout-warning
 **ATTENTION** : *L'API de routage de TravelTime a un quota de requêtes par minute :* Si la fonction *getTraveltimeAPIResponse* donnée dans la partie 1 renvoie le code *429*, cela signifie que vous avez dépassé le quota de requêtes par minute. Dans ce cas, attendez une minute avec la fonction *Sys.sleep(60)* avant de relancer la fonction précédement écrite.
 :::
 
+**CHUNK DE CODE A ECRIRE**
+
 ```{r}
+#| echo: FALSE
+#| class-output: output
+
 # Top 5 des gares principales des plus grandes agglomérations françaises
 stations <- c("Paris-Nord", "Lyon-Perrache", "Marseille-St-Charles", "Toulouse-Matabiau", "Lille-Flandres")
 
@@ -435,7 +487,12 @@ timeMatrix
 
 Créer une liste avec les couples des gares reliées par un temps de trajet inférieur à 4h30
 
+**CHUNK DE CODE A ECRIRE**
+
 ```{r}
+#| echo: FALSE
+#| class-output: output
+
 THRESHOLD <- 4.5
 
 # On met les couples de gares de la matrice timeMatrix dans une liste
@@ -459,7 +516,12 @@ Cette avant dernière partie du sujet consiste à télécharger et traiter des d
 
 Télécharger et observer les données de trafic aérien des liaisons en 2019 de la DGAC en opendata disponibles [ici](https://www.data.gouv.fr/fr/datasets/trafic-aerien-commercial-mensuel-francais-par-paire-daeroports-par-sens-depuis-1990/)
 
+**CHUNK DE CODE A ECRIRE**
+
 ```{r}
+#| echo: FALSE
+#| class-output: output
+
 AIR_TRAFIC_DATA_URL <- "https://www.data.gouv.fr/fr/datasets/r/0c0a451e-983b-4f06-9627-b5ff1bccd2fc" 
 
 airTraficDf <- read.csv2(AIR_TRAFIC_DATA_URL)
@@ -472,23 +534,28 @@ Créer une fonction qui renvoie le trafic total d'une liaison en 2019 en PKT (pr
 -   Les noms des principaux aéroports de métropole contiennent le nom de la ville qu'il déssert
 -   Le nombre de passagers est dans le champ *LSN_PAX_loc*
 
-::: {note}
+::: callout-note
 **Note** : Les noms des principaux aéroports de métropole contiennent le nom de la ville qu'il déssert
 :::
 
-::: {note}
+::: callout-note
 **Note** : Le nombre de passagers correspond au champ *LSN_PAX_loc*
 :::
 
-::: {ATTENTION}
+::: callout-warning
 **ATTENTION** : Prendre en compte le trafic aérien dans les deux sens
 :::
 
-::: {ATTENTION}
+::: callout-warning
 **ATTENTION** : Paris qui possède 2 aéroports
 :::
 
+**CHUNK DE CODE A ECRIRE**
+
 ```{r}
+#| echo: FALSE
+#| class-output: output
+
 getAirTraficBetweenCities <- function(city1, city2){
   
   # Trafic dans le sens city1 -> city2
@@ -507,18 +574,28 @@ getAirTraficBetweenCities <- function(city1, city2){
 
 Tester la fonction avec Paris et Toulouse (Il faut trouver 1 870 474 245 PKT)
 
+**CHUNK DE CODE A ECRIRE**
+
 ```{r}
+#| echo: FALSE
+#| class-output: output
+
 trafic <- getAirTraficBetweenCities("Paris", "Toulouse")
 trafic
 ```
 
 Sommer le trafic aérien pour chaque couple de villes reliées par un temps de trajet inférieur à 4h30
 
-::: {note}
+::: callout-note
 **Note** : Les noms des principales gares de métropole contiennent le nom de la ville qu'il déssert
 :::
 
+**CHUNK DE CODE A ECRIRE**
+
 ```{r}
+#| echo: FALSE
+#| class-output: output
+
 underThresholdAirTrafic <- 0
 for (route in underThresholdRoutes){
   # On utilise strsplit pour récupérer le nom de la ville associé à une gare
@@ -532,7 +609,12 @@ underThresholdAirTrafic
 
 En déduire les émissions de CO2 approximatives évitées que représente ce trafic avec une estimation des gCO2éq par PKT de [statista](https://www.statista.com/statistics/1113177/co2-emissions-by-airline-europe/)
 
+**CHUNK DE CODE A ECRIRE**
+
 ```{r}
+#| echo: FALSE
+#| class-output: output
+
 GCO2_PER_PKT <- 80
 
 # On estime les émissions de CO2 en tCO2éq
@@ -561,14 +643,21 @@ stadiaMaps:
 
 Mettre dans des variables globales la clé API de Stadia Maps et un lien d'une tuile Stadia Maps de votre choix pour le fond de carte (URL de fonds de carte [ici](https://stadiamaps.com/themes/))
 
-::: {note}
+::: callout-note
 **Note** : A la différence de l'API de routage de TravelTime, l'API de Stadia Maps pour obtenir un fond de carte est plus simple d'utilisation puisque la requête HTTP se fait simplement via un lien HTML (sans JSON)
 :::
 
+**CHUNK DE CODE A ECRIRE**
+
 ```{r}
+#| echo: FALSE
+#| class-output: output
+
 library(leaflet)
 
-STADIA_MAPS_API_KEY <- yaml::read_yaml("config.yaml")$stadiaMaps$API_KEY
+# On lit la clé API dans le fichier de configuration (en supprimant le warning inutile)
+secrets <- suppressWarnings({yaml::read_yaml("config.yaml")})
+STADIA_MAPS_API_KEY <- secrets$stadiaMaps$API_KEY
 
 ALIDADE_SMOOTH_TILES_URL <- "https://tiles.stadiamaps.com/tiles/alidade_smooth/{z}/{x}/{y}{r}.png?api_key="
 OUTDOORS_TILES_URL <- "https://tiles.stadiamaps.com/tiles/outdoors/{z}/{x}/{y}{r}.png?api_key="
@@ -580,7 +669,12 @@ TILES_URL <- paste0(ALIDADE_SMOOTH_TILES_URL, STADIA_MAPS_API_KEY)
 
 Créer un dataframe avec tous les éléments pour cartographier les émissions sur les lignes repérées (les noms, les latitudes et les longitudes des villes de départ et d'arrivée, et les émissions de CO2 des lignes associées)
 
+**CHUNK DE CODE A ECRIRE**
+
 ```{r}
+#| echo: FALSE
+#| class-output: output
+
 emissionByRouteDf <- data.frame(city1 = character(), city2 = character(), lat1 = numeric(), lng1 = numeric(), lat2 = numeric(), lng2 = numeric(), emissions = numeric())
 
 for (route in underThresholdRoutes){
@@ -609,7 +703,12 @@ emissionByRouteDf
 
 Créer une carte de base avec le fond de carte Stadia Maps avec la fonction *addTiles* de *leaflet*
 
+**CHUNK DE CODE A ECRIRE**
+
 ```{r}
+#| echo: FALSE
+#| class-output: output
+
 leafletMap <- leaflet() %>%
   addTiles(urlTemplate = TILES_URL)
 ```
@@ -620,7 +719,12 @@ Faire une boucle pour ajouter toutes les lignes repérées à la carte avec la f
 
 -   Si les émissions sont nulles, on les affiche en noir en trait fin
 
+**CHUNK DE CODE A ECRIRE**
+
 ```{r}
+#| echo: FALSE
+#| class-output: output
+
 for (i in 1:nrow(emissionByRouteDf)) {
   # Si les émissions sont non-nulles
   if (emissionByRouteDf[i,"emissions"] > 0){
@@ -644,7 +748,11 @@ for (i in 1:nrow(emissionByRouteDf)) {
 
 Faire une boucle pour ajouter toutes les villes à la carte avec la fonction *addCircleMarkers* de *leaflet*
 
+**CHUNK DE CODE A ECRIRE**
+
 ```{r}
+#| echo: FALSE
+#| class-output: output
 
 # On personnalise les étiquettes qui seront affichées sur la carte
 customLabelOptions <- labelOptions(noHide = TRUE, style = list("background" = "rgba(255, 255, 255, 0.5)"))
@@ -669,6 +777,10 @@ for (i in 1:nrow(emissionByRouteDf)) {
 
 Affiche la carte
 
+**CHUNK DE CODE A ECRIRE**
+
 ```{r}
+#| echo: FALSE
+
 leafletMap
 ```

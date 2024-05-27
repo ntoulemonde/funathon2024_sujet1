@@ -1,0 +1,6 @@
+.output {
+  color: black;
+  max-height: 600px;
+  overflow: auto;
+  background: #f0f0f0;
+}

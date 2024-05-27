@@ -127,7 +127,7 @@ json <- '{
 }'
 ```
 
-On teste l'API avec la fonction et le json, et on regarde le contenu de la réponse de l'API
+On teste l'API avec la fonction et le json, et on regarde le contenu de la réponse de l'API avec la fonction *View*
 
 ```{r}
 ISOCHRONE_API_URL <- "https://api.traveltimeapp.com/v4/time-map"
@@ -329,7 +329,7 @@ json <- '{
 }'
 ```
 
-On questionne l'API avec la fonction et le json, et on regarde le contenu de la réponse de l'API
+On questionne l'API avec la fonction et le json, et on regarde le contenu de la réponse de l'API avec la fonction *View*
 
 ```{r}
 TIME_MATRIX_API_URL <- "https://api.traveltimeapp.com/v4/time-filter"
