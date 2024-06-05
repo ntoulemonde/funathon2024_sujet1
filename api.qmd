@@ -1,0 +1,162 @@
+## 1.Interaction avec l'API de routage de TravelTime
+
+La première partie du sujet consiste à interroger basiquement l'API de routage de TravelTime qui permet obtenir des données de temps de trajet entre deux points définis par leurs coordoonées géographiques.
+
+Les deux prochains chunks de code vous sont donnés, ils permettent l'envoie d'une requête contenant un JSON à l'endpoint (i.e au lien) d'une API de TravelTime afin de récupérer les données de temps de trajet.
+
+::: callout-note
+**Note** : *Qu'est ce qu'une API ?* C'est une interface logicielle (Application Programming Interface) qui permet à des applications de communiquer entre elles. Ces interfaces utilisent en général des requêtes HTTP contenant des JSON pour envoyer et recevoir des données.
+:::
+
+Commencer par créer un compte sur [TravelTime](https://account.traveltime.com/) afin de pouvoir accéder à leur API via des clés API.
+
+Créer ensuite un fichier de configuration "config.yaml" structuré comme ci-dessous pour stocker les clés API :
+
+``` yaml
+travelTime:
+  X_API_ID: "votre_id_api_ici"
+  X_API_KEY: "votre_clé_api_ici"
+```
+
+::: callout-note
+**Note** : *Qu'est ce qu'un fichier yaml ?* C'est un format de fichier simplifié qui permet de stocker des données structurées à la manière d'un fomart CSV, JSON ou XML. Il est souvent utilisé pour stocker des configurations de programme.
+:::
+
+On teste ensuite l'envoie d'une requête HTTP contenant un JSON à l'endpoint (i.e au lien) d'une API de TravelTime grâce au code fourni.
+
+Pour cela, à partir de la documentation et du playground de l'API de routage disponible [ici](https://playground.traveltime.com/routes) :
+
+-   compléter la variable *ROUTES_API_URL* du chunk ci-dessous par l'endpoint de l'API de routage
+-   compléter la variable *json* du chunk ci-dessous par JSON de test (en chaine de caractères) pour l'API de routage
+
+Tester l'API et observer le contenu et le code de la réponse grâce au chunk de code fourni ci-dessous.
+
+*Chunk de code donné aux participants (à l'exception des variables ROUTES_API_URL et json)*
+
+```{r}
+#| class-output: output
+
+library(httr)
+library(yaml)
+
+# On lit les clés API dans le fichier de configuration (en supprimant le warning inutile)
+secrets <- suppressWarnings({yaml::read_yaml("config.yaml")})
+X_API_ID <- secrets$travelTime$X_API_ID
+X_API_KEY <- secrets$travelTime$X_API_KEY
+
+# On copie-colle l'endpoint de l'API de routage
+ROUTES_API_URL <- "https://api.traveltimeapp.com/v4/routes"
+
+# On copie-colle un JSON de test du playground de l'API de routage
+json <- '{
+  "locations": [
+    {
+      "id": "point-from",
+      "coords": {
+        "lat": 48.8534,
+        "lng": 2.3483
+      }
+    },
+    {
+      "id": "point-to-1",
+      "coords": {
+        "lat": 43.6044,
+        "lng": 1.4442
+      }
+    }
+  ],
+  "departure_searches": [
+    {
+      "id": "departure-search",
+      "transportation": {
+        "type": "public_transport",
+        "walking_time": 900,
+        "cycling_time_to_station": 100,
+        "parking_time": 0,
+        "boarding_time": 0,
+        "driving_time_to_station": 1800,
+        "pt_change_delay": 0,
+        "disable_border_crossing": false
+      },
+      "departure_location_id": "point-from",
+      "arrival_location_ids": [
+        "point-to-1"
+      ],
+      "departure_time": "2024-06-05T18:00:00.000Z",
+      "properties": [
+        "travel_time",
+        "route"
+      ],
+      "range": {
+        "enabled": true,
+        "max_results": 5,
+        "width": 43200
+      }
+    }
+  ]
+}'
+
+
+# On prépare l'entête de la requête
+headers <- httr::add_headers("Content-Type" = "application/json",
+                             "X-Application-Id" = X_API_ID,
+                             "X-Api-Key" = X_API_KEY)
+# On envoie la requête avec les headers spécifiés
+response <- httr::POST(ROUTES_API_URL, body = json, encode = "json", headers)
+# On récupère le contenu de la réponse
+content <- httr::content(response)
+# On récupère le code de la réponse
+code <- httr::status_code(response)
+
+#View(content) # Ne marche pas pour les rendus Quarto
+content # Très long à afficher dans les rendus Quarto
+code
+```
+
+On encapsule le code précédent dans une fonction qui envoie une requête contenant un JSON (en chaine de caractères) à l'endpoint d'une API de TravelTime et qui renvoie le contenu et le code de la réponse de l'API
+
+**Chunk de code donné aux participants**
+
+```{r}
+#| class-output: output
+
+getTraveltimeAPIResponse <- function(apiUrl, json){
+  # On prépare les headers
+  headers <- httr::add_headers("Content-Type" = "application/json",
+                               "X-Application-Id" = X_API_ID,
+                               "X-Api-Key" = X_API_KEY)
+  # On envoie la requête avec les headers spécifiés
+  response <- httr::POST(apiUrl, body = json, encode = "json", headers)
+  # On récupère le contenu de la réponse
+  content <- httr::content(response)
+  # On récupère le code de la réponse
+  code <- httr::status_code(response)
+  return(list(content, code))
+}
+```
+
+Tester la fonction *getTraveltimeAPIResponse* avec l'endpoint et le json de test précédents et analyser le contenu de la réponse de l'API
+
+**CHUNK DE CODE A ECRIRE**
+
+```{r}
+#| echo: FALSE
+#| class-output: output
+
+response <- getTraveltimeAPIResponse(ROUTES_API_URL, json)
+#View(response) # Ne marche pas pour les rendus Quarto
+response # Très long à afficher dans les rendus Quarto
+```
+
+Après analyse du contenu de la réponse avec la fonction *View*, extraire dans une variable R la liste des descriptions des itinéraires trouvés (liste nommée *properties* dans le JSON)
+
+**CHUNK DE CODE A ECRIRE**
+
+```{r}
+#| echo: FALSE
+#| class-output: output
+
+apiData <- response[[1]]$results[[1]]$locations[[1]]$properties
+#View(apiData) # Ne marche pas pour les rendus Quarto
+apiData # Très long à afficher dans les rendus Quarto
+```

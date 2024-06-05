@@ -1,0 +1,162 @@
+## 5.Datavisualisation des données sur une carte avec le package leaflet
+
+Cette dernière partie du sujet consiste à visualiser les émissions de CO2 précédemment calculées sur une carte interactive avec le package *leaflet* et des fonds de carte de *Stadia Maps* afin d'identifier visuellement les liaisons aériennes les plus émissives.
+
+Le but est d'obtenir une carte interactive qui à l'allure de celle-ci (qui a volontairement que 5 villes pour l'exemple) :
+
+::: {align="center"}
+![](Aspect_de_la_carte.png)
+:::
+
+Commencer par créer un compte sur [Stadia Maps](https://client.stadiamaps.com/signup/?utm_content=top_nav_signup&utm_source=marketing_site) afin de pouvoir accéder à leur API via des clés API.
+
+Compléter ensuite un fichier de configuration "config.yaml" comme ci-dessous pour stocker la clé API :
+
+``` yaml
+stadiaMaps:
+  API_KEY: "votre_clé_api_ici"
+```
+
+Mettre dans des variables globales la clé API de Stadia Maps et un lien d'une tuile Stadia Maps de votre choix pour le fond de carte (URL de fonds de carte [ici](https://stadiamaps.com/themes/))
+
+::: callout-note
+**Note** : A la différence de l'API de routage de TravelTime, l'API de Stadia Maps pour obtenir un fond de carte est plus simple d'utilisation puisque la requête HTTP se fait simplement via un lien HTML (sans JSON)
+:::
+
+**CHUNK DE CODE A ECRIRE**
+
+```{r}
+#| echo: FALSE
+#| class-output: output
+
+library(leaflet)
+
+# On lit la clé API dans le fichier de configuration (en supprimant le warning inutile)
+secrets <- suppressWarnings({yaml::read_yaml("config.yaml")})
+STADIA_MAPS_API_KEY <- secrets$stadiaMaps$API_KEY
+
+ALIDADE_SMOOTH_TILES_URL <- "https://tiles.stadiamaps.com/tiles/alidade_smooth/{z}/{x}/{y}{r}.png?api_key="
+OUTDOORS_TILES_URL <- "https://tiles.stadiamaps.com/tiles/outdoors/{z}/{x}/{y}{r}.png?api_key="
+ALIDADE_SATELLITE_TILES_URL <- "https://tiles.stadiamaps.com/tiles/alidade_satellite/{z}/{x}/{y}{r}.png?api_key="
+
+# On passe la clée API dans les URL des tuiles
+TILES_URL <- paste0(ALIDADE_SMOOTH_TILES_URL, STADIA_MAPS_API_KEY)
+```
+
+Créer un dataframe avec tous les éléments pour cartographier les émissions sur les lignes repérées (les noms, les latitudes et les longitudes des villes de départ et d'arrivée, et les émissions de CO2 des lignes associées)
+
+**CHUNK DE CODE A ECRIRE**
+
+```{r}
+#| echo: FALSE
+#| class-output: output
+
+emissionByRouteDf <- data.frame(city1 = character(), city2 = character(), lat1 = numeric(), lng1 = numeric(), lat2 = numeric(), lng2 = numeric(), emissions = numeric())
+
+for (route in underThresholdRoutes){
+  # On récupère les coordonnées des villes
+  coordinates1 <- getStationCoordinates(route[1], verbose = FALSE)
+  coordinates2 <- getStationCoordinates(route[2], verbose = FALSE)
+  
+  # On utilise strsplit pour récupérer le nom de la ville associé à une gare
+  city1 <- strsplit(route[1], "-")[[1]][1]
+  city2 <- strsplit(route[2], "-")[[1]][1]
+  
+  # On récupère les émissions de CO2 associées
+  emissions <- getAirTraficBetweenCities(city1, city2) * GCO2_PER_PKT / 1000000
+  
+  # On ajoute les données au dataframe
+  dfTemp <- data.frame(city1 = city1, city2 = city2,
+                       lat1 = coordinates1[1], lng1 = coordinates1[2],
+                       lat2 = coordinates2[1], lng2 = coordinates2[2],
+                       emissions = emissions, row.names = paste0(city1, "-", city2))
+  
+  emissionByRouteDf <- rbind(emissionByRouteDf, dfTemp)
+}
+
+emissionByRouteDf
+```
+
+Créer une carte de base avec le fond de carte Stadia Maps avec la fonction *addTiles* de *leaflet*
+
+**CHUNK DE CODE A ECRIRE**
+
+```{r}
+#| echo: FALSE
+#| class-output: output
+
+leafletMap <- leaflet() %>%
+  addTiles(urlTemplate = TILES_URL)
+```
+
+Faire une boucle pour ajouter toutes les lignes repérées à la carte avec la fonction *addPolylines* de *leaflet* :
+
+-   Si les émissions sont non-nulles, on les affiche en rouge avec une épaisseur de trait proportionnelle aux émissions
+
+-   Si les émissions sont nulles, on les affiche en noir en trait fin
+
+**CHUNK DE CODE A ECRIRE**
+
+```{r}
+#| echo: FALSE
+#| class-output: output
+
+for (i in 1:nrow(emissionByRouteDf)) {
+  # Si les émissions sont non-nulles
+  if (emissionByRouteDf[i,"emissions"] > 0){
+      leafletMap <- leafletMap %>%
+      addPolylines(lat = c(emissionByRouteDf[i,"lat1"], emissionByRouteDf[i,"lat2"]),
+                   lng = c(emissionByRouteDf[i,"lng1"], emissionByRouteDf[i,"lng2"]),
+                   weight = emissionByRouteDf[i,"emissions"]/10000,
+                   color = "red", opacity = 0.5
+                   )
+  # Si les émissions sont nulles
+      }else{
+    leafletMap <- leafletMap %>%
+      addPolylines(lat = c(emissionByRouteDf[i,"lat1"], emissionByRouteDf[i,"lat2"]),
+                   lng = c(emissionByRouteDf[i,"lng1"], emissionByRouteDf[i,"lng2"]),
+                   weight = 1,
+                   color = "black", opacity = 0.5
+                   )
+  }
+}
+```
+
+Faire une boucle pour ajouter toutes les villes à la carte avec la fonction *addCircleMarkers* de *leaflet*
+
+**CHUNK DE CODE A ECRIRE**
+
+```{r}
+#| echo: FALSE
+#| class-output: output
+
+# On personnalise les étiquettes qui seront affichées sur la carte
+customLabelOptions <- labelOptions(noHide = TRUE, style = list("background" = "rgba(255, 255, 255, 0.5)"))
+
+for (i in 1:nrow(emissionByRouteDf)) {
+  leafletMap <- leafletMap %>%
+    addCircleMarkers(lat = emissionByRouteDf[i, "lat1"],
+                     lng = emissionByRouteDf[i, "lng1"],
+                     radius = 5,
+                     color = "#4444AA",
+                     label = as.character(emissionByRouteDf[i, "city1"]),
+                     labelOptions = customLabelOptions) %>%
+    addCircleMarkers(lat = emissionByRouteDf[i, "lat2"],
+                     lng = emissionByRouteDf[i, "lng2"],
+                     radius = 5,
+                     color = "#4444AA",
+                     label = as.character(emissionByRouteDf[i, "city2"]),
+                     labelOptions = customLabelOptions)
+}
+
+```
+
+Affiche la carte
+
+**CHUNK DE CODE A ECRIRE**
+
+```{r}
+#| echo: FALSE
+
+leafletMap
+```

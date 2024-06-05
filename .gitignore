@@ -1,2 +1,4 @@
 secrets.yaml
 config.yaml
+/.quarto/
+/_site/
