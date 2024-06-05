@@ -9,12 +9,3 @@ Description:
   Visualiser les émissions de C02 liées à une mesure de restriction de liaison aérienne relativement à des durées de trajets ferroviaires dans le cadre. L'étude portera sur les liaisons aériennes entre les 10 plus grandes agglomérations de la Métropole française. Elle permettra de quantifier et de localiser les émissions de C02 évitées avec des mesures hypothétiques d'interdictions de liaisons aériennes lorsqu'une alternative ferroviaire existe en moins de 3h30, 4h30, 5h30...
 License: License: MIT + file LICENCE
 Encoding: UTF-8
-Imports: 
-    httr,
-    yaml,
-    osmdata,
-    tmaptools,
-    dplyr,
-    leaflet,
-    jsonlite
-    

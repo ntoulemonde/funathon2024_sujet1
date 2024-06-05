@@ -64,7 +64,7 @@ Les étapes suivantes permettront de récupérer le projet:
 Après avoir ouvert un terminal dans `RStudio`, exécuter 
 
 ```bash
-git clone https://github.com/inseefrlab/funathon2024_sujet2.git
+git clone https://github.com/inseefrlab/funathon2024_sujet1.git
 ```
 
 puis, dans l'explorateur de fichiers (fenêtre en bas à droite), cliquer sur le fichier `RTraffic.Rproj` pour ouvrir le projet. 
