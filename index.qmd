@@ -1,6 +1,20 @@
 ---
-title: "Visualisation des émissions de C02 de liaisons aériennes"
-subtitle: "Visualiser les émissions de C02 liées à une mesure de restriction de liaison aérienne relativement à des durées de trajets ferroviaires"
+title: "Visualiser les émissions de C02 liées à une mesure de restriction de liaison aérienne relativement à des durées de trajets ferroviaires"
+lang: fr-FR
+author: 
+- name: Thomas Mallet
+  email: thomas.mallet@aviation-civile.gouv.fr
+  affiliations: 
+      - name: "[DGAC](https://droits-passagers-aeriens.aviation-civile.gouv.fr/public/qui-sommes-nous)"
+- name: Enzo Pezzaliet
+  email: enzo.pezzali@aviation-civile.gouv.fr
+  affiliations: 
+      - name: "[DGAC](https://droits-passagers-aeriens.aviation-civile.gouv.fr/public/qui-sommes-nous)"
+
+- name: Thomas Lechalupe
+  email: thomas.lechalupe@aviation-civile.gouv.fr
+  affiliations:
+      - name: "[DGAC](https://droits-passagers-aeriens.aviation-civile.gouv.fr/public/qui-sommes-nous)"
 format:
   html:
     number-sections: true
@@ -11,8 +25,6 @@ editor_options:
 ---
 
 # Introduction {.unnumbered}
-
-# Objectifs
 
 Visualiser les émissions de C02 liées à une mesure de restriction de liaison aérienne relativement à des durées de trajets ferroviaires dans le cadre. L'étude portera sur les liaisons aériennes entre les 10 plus grandes agglomérations de la Métropole française. Elle permettra de quantifier et de localiser les émissions de C02 évitées avec des mesures hypothétiques d'interdictions de liaisons aériennes lorsqu'une alternative ferroviaire existe en moins de 3h30, 4h30, 5h30...
 
@@ -110,4 +122,3 @@ renv::restore()
 
 Il est tout à fait possible, ensuite, d'installer des _packages_ supplémentaires par le biais de `install.packages`. L'environnement proposé par notre fichier `renv.lock` est le minimum requis pour reproduire l'application mais ce n'est pas un environnement figé. Si vous ajoutez des _packages_ utiles pour votre application, avant la phase de mise en production, n'oubliez pas de faire `renv::snapshot()` pour mettre à jour le fichier `renv.lock`. 
 Maintenant que nous disposons d'un environnement fonctionnel, nous pouvons avancer sur la conception du projet. La première étape est d'explorer les jeux de données que nous utiliserons dans l'application.
-
