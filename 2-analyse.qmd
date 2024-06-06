@@ -10,7 +10,7 @@ format:
 execute: 
   eval: true
 ---
-  
+
 
 ```{r}
 #| echo: false
@@ -39,13 +39,15 @@ get_travel_time_api_response <- function(api_url, request_body) {
 
   # On vérifie s'il y a eu une erreur
   if (!httr::http_error(response)) {
-    content <- httr::content(response, as = "parsed")
-    code <- httr::status_code(response)
-    return(list("Content" = content, "Status_code" = code))
+    return(list("Content" = httr::content(response, as = "parsed"), 
+                "Status_code" = httr::status_code(response)
+                )
+          )
   } else {
     # On affiche une message d'avertissement lorsque la requête n'a rien renvoyé
     warning("Failed to retrieve data: ", httr::http_status(response)$message)
-    return(NULL)
+    return(list("Content" = NA, 
+                "Status_code" = httr::status_code(response)))
   }
 }
 
@@ -304,8 +306,7 @@ Si la fonction `get_travel_time_api_response()` donnée dans la partie 1 renvoie
 #| code-overflow: scroll
 
 # Define the stations
-STATIONS <- c("Paris-Nord", "Lyon-Perrache", "Marseille-St-Charles", "Toulouse-Matabiau", "Lille-Flandres")
-#STATIONS <- c("Paris-Nord", "Lyon-Perrache", "Marseille-St-Charles", "Toulouse-Matabiau", "Lille-Flandres", "Bordeaux-St-Jean", "Nice-Ville", "Nantes", "Strasbourg-Ville", "Montpellier-St-Roch")
+STATIONS <- c("Paris-Nord", "Lyon-Perrache", "Marseille-St-Charles", "Toulouse-Matabiau", "Lille-Flandres", "Bordeaux-St-Jean", "Nice-Ville", "Nantes", "Strasbourg-Ville", "Montpellier-St-Roch")
 
 # Initialisation de la matrice
 time_matrix <- matrix(NA, nrow = length(STATIONS), ncol = length(STATIONS), dimnames = list(STATIONS, STATIONS))
@@ -353,13 +354,15 @@ THRESHOLD <- 4.5
 lower_tri_matrix <- lower.tri(time_matrix)
 
 # On extrait les indices où la condition n'est pas respectée
-under_threshold_indices <- which(time_matrix < threshold & lower_tri_matrix, arr.ind = TRUE)
+under_threshold_indices <- which(time_matrix < THRESHOLD & lower_tri_matrix, arr.ind = TRUE)
 
 # On crée une liste de paires qui remplissent les conditions
-under_threshold_routes <- mapply(function(i, j) c(stations[i], stations[j]),
+under_threshold_routes <- mapply(function(i, j) c(STATIONS[i], STATIONS[j]),
                                  i = under_threshold_indices[, 1],
                                  j = under_threshold_indices[, 2],
-                                 SIMPLIFY = FALSE)
+                                 SIMPLIFY = FALSE,
+                                 USE.NAMES = FALSE
+                                 )
 
 under_threshold_routes
 
@@ -404,7 +407,7 @@ air_traffic_df <- read.csv2(AIR_TRAFFIC_DATA_URL)
 # On définit l'URL des données
 AIR_TRAFFIC_DATA_URL <- "https://www.data.gouv.fr/fr/datasets/r/0c0a451e-983b-4f06-9627-b5ff1bccd2fc" 
 
-air_trafic_df <- read.csv2(AIR_TRAFFIC_DATA_URL)
+air_traffic_df <- read.csv2(AIR_TRAFFIC_DATA_URL)
 
 air_traffic_df_to_print <- air_traffic_df |> head(6)
 
@@ -480,11 +483,9 @@ under_threshold_air_traffic <- 0
 
 # Calculer le trafic aérien pour chaque paire
 for (pair in city_pairs) {
-  air_traffic <- get_air_traffic_between_cities(pair[1], pair[2])
+  air_traffic <- get_air_traffic_between_cities(pair[1], pair[2], air_traffic_df)
   under_threshold_air_traffic <- under_threshold_air_traffic + air_traffic
 }
-
-under_threshold_air_traffic
 
 ```
 
@@ -499,7 +500,7 @@ under_threshold_air_traffic
 GCO2_PER_PKT <- 80
 
 # On estime les émissions de CO2 en tCO2éq
-under_threshold_air_traffic * GCO2_PER_PKT / 1000000
+cat(sprintf("En 2019, environ %.2f gCO2éq aurait pu être évités", under_threshold_air_traffic * GCO2_PER_PKT / 1000000))
 ```
 
 :::
