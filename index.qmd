@@ -18,7 +18,7 @@ author:
 format:
   html:
     number-sections: true
-    css: style/styleForLongOutputs.css
+    css: style/custom_styles.css
 editor: visual
 editor_options: 
   chunk_output_type: console
