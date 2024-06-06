@@ -7,8 +7,52 @@ format:
     number-sections: true
     css: style/custom_styles.css
 
+execute: 
+  eval: true
 ---
   
+
+```{r}
+#| echo: false
+
+secrets <- yaml::read_yaml("secrets.yaml")
+X_API_ID <- secrets$travelTime$X_API_ID
+X_API_KEY <- secrets$travelTime$X_API_KEY
+```
+
+```{r}
+#| echo: false
+
+ROUTES_API_URL <- "https://api.traveltimeapp.com/v4/routes"
+```
+
+```{r}
+#| echo: false
+
+get_travel_time_api_response <- function(api_url, request_body) {
+  # On prépare les headers
+  headers <- httr::add_headers("Content-Type" = "application/json",
+                                "X-Application-Id" = X_API_ID,
+                                "X-Api-Key" = X_API_KEY)
+  ## On envoie la requête avec les headers spécifiés
+  response <- httr::POST(api_url, body = request_body, encode = "json", headers)
+
+  # On vérifie s'il y a eu une erreur
+  if (!httr::http_error(response)) {
+    content <- httr::content(response, as = "parsed")
+    code <- httr::status_code(response)
+    return(list("Content" = content, "Status_code" = code))
+  } else {
+    # On affiche une message d'avertissement lorsque la requête n'a rien renvoyé
+    warning("Failed to retrieve data: ", httr::http_status(response)$message)
+    return(NULL)
+  }
+}
+
+```
+
+
+
 # Récupération des coordonnées des villes françaises
  
 L'objectif de cette partie est de récupérer les coordonnées géographiques des gares françaises à partir d'une base de données disponible en accès ouvert sur [data.gouv.fr](https://www.data.gouv.fr/).
@@ -46,7 +90,6 @@ stations_data <- read.csv2(STATIONS_DATA_URL)
 ```{r}
 #| echo: false
 #| output: true
-#| eval: true
 #| df-print: kable
 
 # On définit l'URL des données
@@ -72,7 +115,6 @@ kableExtra::kbl(stations_data_to_print,
 #| code-fold: true
 #| code-summary: Cliquez pour voir la réponse
 #| code-overflow: scroll
-#| eval: true
 
 STATION_NAME <- "Lille-Flandres"
 
@@ -89,9 +131,7 @@ coords <- stations_data |>
 #| code-fold: true
 #| code-summary: Cliquez pour voir la réponse
 #| code-overflow: scroll
-#| eval: true
-#| lst-label: lst-get_station_coordinates
-#| lst-cap: get_station_coordinates
+
 
 get_station_coordinates <- function(station, data, verbose = TRUE){
   
@@ -109,7 +149,7 @@ get_station_coordinates <- function(station, data, verbose = TRUE){
   return(coords)
 }
 
-tlse_coords <- get_station_coordinates("Toulouse-Matabiau", stations_data)
+tlse_coords <- get_station_coordinates("Toulouse-Matabiau", stations_data, verbose = TRUE)
 
 ```
 
@@ -118,7 +158,7 @@ tlse_coords <- get_station_coordinates("Toulouse-Matabiau", stations_data)
 
 # Obtention du temps de transport entre 2 villes
 
-L'objectif de cette partie est de récupérer le temps de transport entre deux gares à partir de leur nom en combinant la fonction `get_travel_time_api_response()` donnée dans la fonction [get_travel_time_api_response()](api.qmd#lst-get_travel_time_api_response) et la fonction [get_station_coordinates()](#lst-get_station_coordinates).
+L'objectif de cette partie est de récupérer le temps de transport entre deux gares à partir de leur nom en combinant la fonction `get_travel_time_api_response()` donnée dans la fonction `get_travel_time_api_response()` et la fonction `get_station_coordinates()`.
 
 ::: {.callout-tip collapse="false" icon=false}
 ## `<i class="bi bi-book"></i>`{=html} Exercice 3 : Calcul du temps de transport
@@ -136,7 +176,6 @@ L'objectif de cette partie est de récupérer le temps de transport entre deux g
 #| code-fold: true
 #| code-summary: Cliquez pour voir la réponse
 #| code-overflow: scroll
-#| eval: true
 
 get_routes_api_json <- function(coords1, coords2){
   # On créé le JSON pour l'API de routage en se basant sur celui de la sous-partie "Interaction avec l'API de routage de TravelTime"
@@ -193,14 +232,17 @@ get_routes_api_json <- function(coords1, coords2){
 
 2. En utilisant la fonction précédement écrite, créer une fonction qui prend en paramètre deux noms de gares et qui renvoie le temps (en heure) de transport du trajet le plus court entre ces 2 gares. Il faudra prendre soin de gérer le cas où aucun trajet n'est trouvé en renvoyant *Inf*.
 
-
 ```{r}
 #| code-fold: true
 #| code-summary: Cliquez pour voir la réponse
 #| code-overflow: scroll
-#| eval: true
 
 get_travel_time_between_stations <- function(station1, station2, data, verbose = TRUE) {
+    # Si les stations sont identiques aucun trajet nécessaire
+  if (station1 == station2) {
+    return(NA)
+  }
+
   # Récupérer les coordonnées pour les deux stations
   coordinates1 <- get_station_coordinates(station1, data, verbose = FALSE)
   coordinates2 <- get_station_coordinates(station2, data, verbose = FALSE)
@@ -229,7 +271,7 @@ get_travel_time_between_stations <- function(station1, station2, data, verbose =
 
   # Afficher le temps de trajet si verbose
   if (verbose) {
-    message_text <- sprintf("%s -> %s : %s heures\n", station1, station2, ifelse(is.infinite(travel_time), "Aucun itinéraire trouvé", travel_time))
+    message_text <- sprintf("%s -> %s : %s heures\n", station1, station2, ifelse(is.infinite(travel_time), "Aucun itinéraire trouvé", round(travel_time, 2)))
     cat(message_text)
   }
 
@@ -244,187 +286,220 @@ get_travel_time_between_stations <- function(station1, station2, data, verbose =
 #| code-fold: true
 #| code-summary: Cliquez pour voir la réponse
 #| code-overflow: scroll
-#| eval: true
 
-travel_time <- get_travel_time_between_stations("Paris-Montparnasse", "Toulouse-Matabiau", stations_data)
-travel_time
+travel_time <- get_travel_time_between_stations("Paris-Montparnasse", "Toulouse-Matabiau", stations_data, verbose=TRUE)
 ```
 
-:::
+4. Faire une matrice temporelle des temps de trajet entre les gares des 10 plus grandes agglomérations françaises (on considerera que la matrice est symétrique pour la compléter plus rapidement). La liste des noms des gares principales (telle qu'écrite dans la base de données en opendata) des 10 plus grandes agglomérations françaises est la suivante : Paris-Nord, Lyon-Perrache, Marseille-St-Charles, Toulouse-Matabiau, Lille-Flandres, Bordeaux-St-Jean, Nice-Ville, Nantes, Strasbourg-Ville et Montpellier-St-Roch.
 
+::::{.callout-warning}
+## L'API de routage de TravelTime a un quota de requêtes par minute
+Si la fonction `get_travel_time_api_response()` donnée dans la partie 1 renvoie le code **429**, cela signifie que vous avez dépassé le quota de requêtes par minute. Dans ce cas, attendez une minute avec la fonction `Sys.sleep(60)` avant de relancer la fonction précédement écrite.
+::::
 
-
-
-
-
-Faire une matrice temporelle des temps de trajet entre les gares des 10 plus grandes agglomérations françaises (on considerera que la matrice est symétrique pour la compléter plus rapidement)
-
-La liste des noms des gares principales (telle qu'écrite dans la base de données en opendata) des 10 plus grandes agglomérations françaises est la suivante : Paris-Nord, Lyon-Perrache, Marseille-St-Charles, Toulouse-Matabiau, Lille-Flandres, Bordeaux-St-Jean, Nice-Ville, Nantes, Strasbourg-Ville et Montpellier-St-Roch
-
-::: callout-warning
-**ATTENTION** : *L'API de routage de TravelTime a un quota de requêtes par minute :* Si la fonction *getTraveltimeAPIResponse* donnée dans la partie 1 renvoie le code *429*, cela signifie que vous avez dépassé le quota de requêtes par minute. Dans ce cas, attendez une minute avec la fonction *Sys.sleep(60)* avant de relancer la fonction précédement écrite.
-:::
-
-**CHUNK DE CODE A ECRIRE**
 
 ```{r}
-#| echo: FALSE
-#| class-output: output
+#| code-fold: true
+#| code-summary: Cliquez pour voir la réponse
+#| code-overflow: scroll
 
-# Top 5 des gares principales des plus grandes agglomérations françaises
-stations <- c("Paris-Nord", "Lyon-Perrache", "Marseille-St-Charles", "Toulouse-Matabiau", "Lille-Flandres")
+# Define the stations
+STATIONS <- c("Paris-Nord", "Lyon-Perrache", "Marseille-St-Charles", "Toulouse-Matabiau", "Lille-Flandres")
+#STATIONS <- c("Paris-Nord", "Lyon-Perrache", "Marseille-St-Charles", "Toulouse-Matabiau", "Lille-Flandres", "Bordeaux-St-Jean", "Nice-Ville", "Nantes", "Strasbourg-Ville", "Montpellier-St-Roch")
 
-# Top 10 des gares principales des plus grandes agglomérations françaises
-#stations <- c("Paris-Nord", "Lyon-Perrache", "Marseille-St-Charles", "Toulouse-Matabiau", "Lille-Flandres", "Bordeaux-St-Jean", "Nice-Ville", "Nantes", "Strasbourg-Ville", "Montpellier-St-Roch")
+# Initialisation de la matrice
+time_matrix <- matrix(NA, nrow = length(STATIONS), ncol = length(STATIONS), dimnames = list(STATIONS, STATIONS))
 
-timeMatrix <- matrix(NA, nrow = length(stations), ncol = length(stations), dimnames = list(stations, stations))
-
-for (i in 1:length(stations)){
-  for (j in 1:i){
-    if (j != i){
-      timeTravel <- getTravelTimeBetweenStations(stations[i], stations[j])
-      timeMatrix[stations[i], stations[j]] <- timeTravel
-      timeMatrix[stations[j], stations[i]] <- timeTravel
-    }
-  }
+# On remplit la matrice avec toutes les pairs possibles
+combinations <- combn(STATIONS, 2, simplify = FALSE)
+for (pair in combinations) {
+  travel_time <- get_travel_time_between_stations(pair[1], pair[2], stations_data, verbose=FALSE)
+  time_matrix[pair[1], pair[2]] <- round(travel_time, 2)
+  time_matrix[pair[2], pair[1]] <- round(travel_time, 2)
 }
 
-timeMatrix
 ```
 
-Créer une liste avec les couples des gares reliées par un temps de trajet inférieur à 4h30
-
-**CHUNK DE CODE A ECRIRE**
+<details>
+<summary>Afficher la matrice</summary>
+</summary>
 
 ```{r}
-#| echo: FALSE
-#| class-output: output
+#| echo: false
+#| output: true
+#| df-print: kable
+
+kableExtra::kbl(time_matrix,
+              "markdown",
+              escape = FALSE,
+              booktabs = TRUE) |>
+  kableExtra::kable_styling(bootstrap_options = c("striped", "hover", "condensed", "responsive"))
+
+``` 
+
+</details>
+
+
+5. Créer une liste avec les couples des gares reliées par un temps de trajet inférieur à 4h30
+
+```{r}
+#| code-fold: true
+#| code-summary: Cliquez pour voir la réponse
+#| code-overflow: scroll
 
 THRESHOLD <- 4.5
 
-# On met les couples de gares de la matrice timeMatrix dans une liste
-underThresholdRoutes <- list()
-for (i in 1:length(stations)){
-  for (j in 1:i){
-    if (i != j){
-      if (timeMatrix[i, j] < THRESHOLD){
-        underThresholdRoutes[[length(underThresholdRoutes)+1]] <- c(stations[i], stations[j])
-      }
-    }
-  }
-}
+# On garde seulement la matrice triangulaire inférieur (car on la supposé symmétrique)
+lower_tri_matrix <- lower.tri(time_matrix)
 
-underThresholdRoutes
+# On extrait les indices où la condition n'est pas respectée
+under_threshold_indices <- which(time_matrix < threshold & lower_tri_matrix, arr.ind = TRUE)
+
+# On crée une liste de paires qui remplissent les conditions
+under_threshold_routes <- mapply(function(i, j) c(stations[i], stations[j]),
+                                 i = under_threshold_indices[, 1],
+                                 j = under_threshold_indices[, 2],
+                                 SIMPLIFY = FALSE)
+
+under_threshold_routes
+
 ```
+
+:::
+
 
 # Téléchargement et traitement des données de trafic aérien entre deux villes
 
-Cette avant dernière partie du sujet consiste à télécharger et traiter des données de trafic aérien entre deux aéroports en 2019 pour calculer les émissions de CO2 du trafic aérien entre les couples de villes/de gares identifiés précédemment et d'en déduire les émissions de CO2 approximatives évitées avec des mesures hypothétiques d'interdictions de liaisons aériennes.
+Cette partie du sujet consiste à télécharger et traiter des données de trafic aérien entre deux aéroports en 2019 pour calculer les émissions de CO2 du trafic aérien entre les couples de villes/de gares identifiés précédemment et d'en déduire les émissions de CO2 approximatives évitées avec des mesures hypothétiques d'interdictions de liaisons aériennes.
 
-Télécharger et observer les données de trafic aérien des liaisons en 2019 de la DGAC en opendata disponibles [ici](https://www.data.gouv.fr/fr/datasets/trafic-aerien-commercial-mensuel-francais-par-paire-daeroports-par-sens-depuis-1990/)
+::: {.callout-tip collapse="false" icon=false}
+## `<i class="bi bi-book"></i>`{=html} Exercice 4 : Analyse du trafic aérien
 
-**CHUNK DE CODE A ECRIRE**
+1. Sur [data.gouv.fr](https://www.data.gouv.fr/), trouvez le jeu de données correspondant au trafic aérien publié par la DGAC.
+
+2. Importez le jeu de données au format csv de l'année 2019 dans votre console R, sans télécharger localement le fichier. Observez les données.
+
 
 ```{r}
-#| echo: FALSE
-#| class-output: output
+#| code-fold: true
+#| code-summary: Cliquez pour voir la réponse
+#| code-overflow: scroll
+#| eval: false
 
-AIR_TRAFIC_DATA_URL <- "https://www.data.gouv.fr/fr/datasets/r/0c0a451e-983b-4f06-9627-b5ff1bccd2fc" 
+# On définit l'URL des données
+AIR_TRAFFIC_DATA_URL <- "https://www.data.gouv.fr/fr/datasets/r/0c0a451e-983b-4f06-9627-b5ff1bccd2fc" 
 
-airTraficDf <- read.csv2(AIR_TRAFIC_DATA_URL)
-
-head(airTraficDf)
+air_traffic_df <- read.csv2(AIR_TRAFFIC_DATA_URL)
 ```
 
-Créer une fonction qui renvoie le trafic total d'une liaison en 2019 en PKT (produit du nombre de passagers et de la distance parcourue) à partir des deux noms de villes (et non d'aéroport) en paramètre
-
--   Les noms des principaux aéroports de métropole contiennent le nom de la ville qu'il déssert
--   Le nombre de passagers est dans le champ *LSN_PAX_loc*
-
-::: callout-note
-**Note** : Les noms des principaux aéroports de métropole contiennent le nom de la ville qu'il déssert
-:::
-
-::: callout-note
-**Note** : Le nombre de passagers correspond au champ *LSN_PAX_loc*
-:::
-
-::: callout-warning
-**ATTENTION** : Prendre en compte le trafic aérien dans les deux sens
-:::
-
-::: callout-warning
-**ATTENTION** : Paris qui possède 2 aéroports
-:::
-
-**CHUNK DE CODE A ECRIRE**
+<details>
+<summary>Afficher les données</summary>
+</summary>
 
 ```{r}
-#| echo: FALSE
-#| class-output: output
+#| echo: false
+#| output: true
+#| df-print: kable
 
-getAirTraficBetweenCities <- function(city1, city2){
+# On définit l'URL des données
+AIR_TRAFFIC_DATA_URL <- "https://www.data.gouv.fr/fr/datasets/r/0c0a451e-983b-4f06-9627-b5ff1bccd2fc" 
+
+air_trafic_df <- read.csv2(AIR_TRAFFIC_DATA_URL)
+
+air_traffic_df_to_print <- air_traffic_df |> head(6)
+
+kableExtra::kbl(air_traffic_df_to_print,
+              "markdown",
+              escape = FALSE,
+              booktabs = TRUE) |>
+  kableExtra::kable_styling(bootstrap_options = c("striped", "hover", "condensed", "responsive"))
+
+``` 
+
+</details>
+
+3. Créer une fonction qui renvoie le trafic total d'une liaison en 2019 en PKT (produit du nombre de passagers et de la distance parcourue) à partir des deux noms de villes (et non d'aéroport) en paramètre.
+
+::::{.callout-tip}
+1. Les noms des principaux aéroports de métropole contiennent le nom de la ville qu'il déssert. 
+2. Le nombre de passagers correspond à la variable `LSN_PAX_loc`. 
+3. N'oubliez pas de prendre en compte le trafic aérien dans les deux sens.
+4. Paris qui possède 2 aéroports commerciaux
+::::
+
+```{r}
+#| code-fold: true
+#| code-summary: Cliquez pour voir la réponse
+#| code-overflow: scroll
+
+get_air_traffic_between_cities <- function(city1, city2, data) {
+  # Calcul du trafic dans les deux sens city1 -> city2 et city2 -> city1
+  total_traffic <- data |>
+    dplyr::filter(
+      (grepl(city1, LSN_DEP_NOM, ignore.case = TRUE) & grepl(city2, LSN_ARR_NOM, ignore.case = TRUE)) |
+        (grepl(city2, LSN_DEP_NOM, ignore.case = TRUE) & grepl(city1, LSN_ARR_NOM, ignore.case = TRUE))
+    ) |>
+    dplyr::summarise(traffic = sum(LSN_DIST * LSN_PAX_loc)) |> # calcul du PKT
+    dplyr::pull(traffic)
   
-  # Trafic dans le sens city1 -> city2
-  airTrafic1 <- airTraficDf %>%
-             filter(grepl(city1, LSN_DEP_NOM, ignore.case = TRUE) & grepl(city2, LSN_ARR_NOM, ignore.case = TRUE)) %>%
-    summarise(trafic = sum(LSN_DIST*LSN_PAX_loc))
-  
-  # Trafic dans le sens city2 -> city1
-  airTrafic2 <- airTraficDf %>%
-             filter(grepl(city2, LSN_DEP_NOM, ignore.case = TRUE) & grepl(city1, LSN_ARR_NOM, ignore.case = TRUE)) %>%
-    summarise(trafic = sum(LSN_DIST*LSN_PAX_loc))
-  
-  return(as.numeric(airTrafic1 + airTrafic2))
+  return(as.numeric(total_traffic))
 }
 ```
 
-Tester la fonction avec Paris et Toulouse (Il faut trouver 1 870 474 245 PKT)
-
-**CHUNK DE CODE A ECRIRE**
+4. Tester la fonction avec Paris et Toulouse
 
 ```{r}
-#| echo: FALSE
-#| class-output: output
+#| code-fold: true
+#| code-summary: Cliquez pour voir la réponse
+#| code-overflow: scroll
 
-trafic <- getAirTraficBetweenCities("Paris", "Toulouse")
-trafic
+get_air_traffic_between_cities("Paris", "Toulouse", air_traffic_df)
+
 ```
 
-Sommer le trafic aérien pour chaque couple de villes reliées par un temps de trajet inférieur à 4h30
+5. Sommer le trafic aérien pour chaque couple de villes reliées par un temps de trajet inférieur à 4h30
 
-::: callout-note
-**Note** : Les noms des principales gares de métropole contiennent le nom de la ville qu'il déssert
-:::
-
-**CHUNK DE CODE A ECRIRE**
+::::{.callout-tip}
+Les noms des principales gares de métropole contiennent le nom de la ville qu'il déssert
+::::
 
 ```{r}
-#| echo: FALSE
-#| class-output: output
+#| code-fold: true
+#| code-summary: Cliquez pour voir la réponse
+#| code-overflow: scroll
 
-underThresholdAirTrafic <- 0
-for (route in underThresholdRoutes){
-  # On utilise strsplit pour récupérer le nom de la ville associé à une gare
-  city1 <- strsplit(route[1], "-")[[1]][1]
-  city2 <- strsplit(route[2], "-")[[1]][1]
-  airTrafic <- getAirTraficBetweenCities(city1, city2)
-  underThresholdAirTrafic <- underThresholdAirTrafic + airTrafic
+# Fonction pour extraire les noms des villes à partir des noms des gares
+extract_city_name <- function(station) {
+  sapply(station, function(x) strsplit(x, "-")[[1]][1])
 }
-underThresholdAirTrafic
+
+# Extraire les paires de villes 
+city_pairs <- lapply(under_threshold_routes, extract_city_name)
+
+under_threshold_air_traffic <- 0
+
+# Calculer le trafic aérien pour chaque paire
+for (pair in city_pairs) {
+  air_traffic <- get_air_traffic_between_cities(pair[1], pair[2])
+  under_threshold_air_traffic <- under_threshold_air_traffic + air_traffic
+}
+
+under_threshold_air_traffic
+
 ```
 
-En déduire les émissions de CO2 approximatives évitées que représente ce trafic avec une estimation des gCO2éq par PKT de [statista](https://www.statista.com/statistics/1113177/co2-emissions-by-airline-europe/)
 
-**CHUNK DE CODE A ECRIRE**
+6. En déduire les émissions de CO2 approximatives évitées que représente ce trafic avec une estimation des gCO2éq par PKT de [statista](https://www.statista.com/statistics/1113177/co2-emissions-by-airline-europe/)
 
 ```{r}
-#| echo: FALSE
-#| class-output: output
+#| code-fold: true
+#| code-summary: Cliquez pour voir la réponse
+#| code-overflow: scroll
 
 GCO2_PER_PKT <- 80
 
 # On estime les émissions de CO2 en tCO2éq
-underThresholdEmissions <- underThresholdAirTrafic * GCO2_PER_PKT / 1000000
-underThresholdEmissions
+under_threshold_air_traffic * GCO2_PER_PKT / 1000000
 ```
+
+:::
