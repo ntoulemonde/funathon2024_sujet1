@@ -29,7 +29,7 @@ C'est un format de fichier simplifié qui permet de stocker des données structu
 :::
 
 ::: {.callout-tip collapse="false" icon=false}
-## `<i class="bi bi-book"></i>`{=html} Exercice 1 :
+## `<i class="bi bi-book"></i>`{=html} Exercice 1 : Se familiariser avec l'API de TravelTime
 
 1. Après avoir créé votre compte sur [TravelTime](https://account.traveltime.com/) et récupéré vos identifiants, stockez les dans un fichier `secret.yaml` comme ci-dessous : 
 
@@ -55,7 +55,6 @@ Afin de vérifier que nous arrivons à communiquer avec l'API, nous allons effec
 
 
 ```{r}
-#| eval: true
 #| code-fold: true
 #| code-summary: Cliquez pour voir la réponse
 #| code-overflow: scroll
@@ -69,7 +68,6 @@ X_API_KEY <- secrets$travelTime$X_API_KEY
 5. En lisant la documentation, ou en observant bien le *playgroud* trouvez le *endpoint* de l'API de routage. Il s'agit de l'URL via lequel nous allons communiquer avec l'API. Stockez la dans la variable `ROUTES_API_URL`.
 
 ```{r}
-#| eval: true
 #| code-fold: true
 #| code-summary: Cliquez pour voir la réponse
 #| code-overflow: scroll
@@ -82,7 +80,6 @@ ROUTES_API_URL <- "https://api.traveltimeapp.com/v4/routes"
 
 
 ```{r}
-#| eval: true
 #| code-fold: true
 #| code-summary: Cliquez pour voir la réponse
 #| code-overflow: scroll
@@ -133,7 +130,6 @@ request_body <- '
 7. Avec le package `httr`, définissez l'en-tête de votre requête, celle-ci doit contenir votre ID et votre clé afin que l'API puisse bien vous identifier et vous renvoyer une réponse. 
 
 ```{r}
-#| eval: true
 #| code-fold: true
 #| code-summary: Cliquez pour voir la réponse
 #| code-overflow: scroll
@@ -146,7 +142,6 @@ headers <- httr::add_headers("Content-Type" = "application/json",
 8. Vous pouvez dès à présent envoyer votre requête. Notez qu'on va utilisez ici la méthode POST, notamment car on a besoin d'une authentification. Si vous souhaitez aller un peu plus loin sur les différences entre les méthodes **GET** et **POST**, vous pouvez regarder ce [post](https://www.ionos.fr/digitalguide/sites-internet/developpement-web/get-vs-post/).
 
 ```{r}
-#| eval: true
 #| code-fold: true
 #| code-summary: Cliquez pour voir la réponse
 #| code-overflow: scroll
@@ -160,7 +155,6 @@ content <- httr::content(response)
 9. Vérifiez que votre requête a bien été reçue et traitée par l'API en regardant le code de retour, celui-ci doit être égal à 200. Si c'est bien le cas, regardez la réponse de l'API, vous devriez obtenir quelque chose similaire à ce qui est affiché ci-dessous.
 
 ```{r}
-#| eval: true
 #| class-output: long-output
 #| code-fold: true
 #| code-summary: Cliquez pour voir la réponse
@@ -179,10 +173,11 @@ if (httr::status_code(response) == 200) {
 10. Créez une fonction `get_traveltimeAPI_response()` qui renvoie la réponse de l'API de TravelTime pour un endpoint et une requête donnés. 
 
 ```{r}
-#| eval: true
 #| code-fold: true
 #| code-summary: Cliquez pour voir la réponse
 #| code-overflow: scroll
+#| lst-label: lst-get_traveltimeAPI_response
+#| lst-cap: get_traveltimeAPI_response
 
 get_traveltimeAPI_response <- function(api_url, request_body) {
   # On prépare les headers
@@ -209,7 +204,6 @@ get_traveltimeAPI_response <- function(api_url, request_body) {
 11. Vérifiez que votre fonction marche bien en utilisant la même requête que lors de la question 8 et comparez les réponses.
 
 ```{r}
-#| eval: true
 #| code-fold: true
 #| code-summary: Cliquez pour voir la réponse
 #| code-overflow: scroll
@@ -221,7 +215,6 @@ response_from_function <- get_traveltimeAPI_response(ROUTES_API_URL, request_bod
 12. Explorez attentivement la réponse puis affectez la liste des descriptions des itinéraires trouvés dans une variable `list_itinerary` (liste nommée *properties* dans le JSON).
 
 ```{r}
-#| eval: true
 #| class-output: long-output
 #| code-fold: true
 #| code-summary: Cliquez pour voir la réponse
@@ -229,7 +222,6 @@ response_from_function <- get_traveltimeAPI_response(ROUTES_API_URL, request_bod
 
 list_itinerary <- response_from_function[[1]]$results[[1]]$locations[[1]]$properties
 print(list_itinerary)
-
 ```
 
 :::

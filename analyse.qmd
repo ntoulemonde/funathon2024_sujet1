@@ -1,86 +1,191 @@
-## 2.Récupération des coordonnées des villes françaises
+---
+lang: fr-FR
+title: Exploration des données issues de l'API de TravelTime
 
-Le but de la seconde partie du sujet est de récupérer les coordonnées géographiques des gares de gares françaises à partir d'une base de données en opendata.
+format:
+  html:
+    number-sections: true
+    css: style/custom_styles.css
 
-Télécharger et observer les données sur les gares françaises en opendata disponbles [ici](https://www.data.gouv.fr/fr/datasets/liste-des-gares/)
+---
 
-::: callout-note
-**Note** : *Comment télécharger un CSV dans un programe R ?* Il suffit de copier-coller le lien de téléchargement d'un fichier CSV dans la fonction *read.csv* ou *read.csv2* (exemple : *read.csv("lien_de_téléchargement")*)
+
+# Récupération des coordonnées des villes françaises
+ 
+L'objectif de cette partie est de récupérer les coordonnées géographiques des gares françaises à partir d'une base de données disponible en accès ouvert sur [data.gouv.fr](https://www.data.gouv.fr/).
+
+
+:::{.callout-note}
+## Comment télécharger un CSV dans un programe R ?
+Il suffit de copier-coller le lien de téléchargement d'un fichier CSV dans la fonction `read.csv` ou `read.csv2` (exemple : `read.csv("lien_de_téléchargement")`)
 :::
 
-**CHUNK DE CODE A ECRIRE**
+
+::: {.callout-tip collapse="false" icon=false}
+## `<i class="bi bi-book"></i>`{=html} Exercice 2 : Travailler avec des données géographiques
+
+1. Sur [data.gouv.fr](https://www.data.gouv.fr/), trouvez le jeu de données correspondant à la liste des gare.
+
+2. Importez le jeu de données au format csv dans votre console R, sans télécharger localement le fichier. Observez les données.
 
 ```{r}
-#| echo: FALSE
-#| class-output: output
+#| code-fold: true
+#| code-summary: Cliquez pour voir la réponse
+#| code-overflow: scroll
+#| eval: false
 
-# On charge les données
+# On définit l'URL des données
 STATIONS_DATA_URL <- "https://www.data.gouv.fr/fr/datasets/r/d22ba593-90a4-4725-977c-095d1f654d28"
 
-stationsData <- read.csv2(STATIONS_DATA_URL)
-
-head(stationsData)
+stations_data <- read.csv2(STATIONS_DATA_URL)
 ```
 
-Utiliser cette base de données qui contient, entre autres, les coordonnées géographiques des gares françaises afin d'extraire un couple de coordonnées (latitude, longitude) à partir d'un nom de gare. Faire un test en affichant les coordonnées de la gare de Lille-Flandres.
-
-**CHUNK DE CODE A ECRIRE**
+<details>
+<summary>Afficher les données</summary>
+</summary>
 
 ```{r}
-#| echo: FALSE
-#| class-output: output
+#| echo: false
+#| output: true
+#| eval: true
+#| df-print: kable
 
-library(dplyr)
+# On définit l'URL des données
+STATIONS_DATA_URL <- "https://www.data.gouv.fr/fr/datasets/r/d22ba593-90a4-4725-977c-095d1f654d28"
+
+stations_data <- read.csv2(STATIONS_DATA_URL)
+
+stations_data_to_print <- stations_data |> head(6)
+
+kableExtra::kbl(stations_data_to_print,
+              "markdown",
+              escape = FALSE,
+              booktabs = TRUE) |>
+  kableExtra::kable_styling(bootstrap_options = c("striped", "hover", "condensed", "responsive"))
+
+``` 
+
+</details>
+
+3. Utiliser cette base de données qui contient, entre autres, les coordonnées géographiques des gares françaises afin d'extraire un couple de coordonnées (latitude, longitude) à partir d'un nom de gare. Faire un test en affichant les coordonnées de la gare de Lille-Flandres.
+
+```{r}
+#| code-fold: true
+#| code-summary: Cliquez pour voir la réponse
+#| code-overflow: scroll
+#| eval: true
 
 STATION_NAME <- "Lille-Flandres"
 
-# On conserve et on renomme les données utiles
-stationsData <- stationsData %>% 
-  select(libelle, commune, x_wgs84, y_wgs84) %>% 
-  rename("lng" = x_wgs84, "lat"=y_wgs84)
-
-# On obtient les coordonnées de la gare
-stationData <- stationsData %>% 
-  filter(libelle == STATION_NAME)
-
-# On converti et on ordonne les coordonnées
-coords <- c(as.numeric(stationData$lat[1]),as.numeric(stationData$lng[1]))
-coords
+coords <- stations_data |>
+  dplyr::select(lng = x_wgs84, lat = y_wgs84, libelle) |>
+  dplyr::filter(libelle == STATION_NAME) |>
+  dplyr::summarise(lat = dplyr::first(as.numeric(lat)), lng = dplyr::first(as.numeric(lng))) |>
+  unlist(use.names = FALSE)
 ```
 
-Encapsuler le code précédent dans une fonction renvoyant les coordonnées d'une gare à partir de la chaîne de caractères du nom de la gare. Faire un test en affichant les coordonnées de la gare de Toulouse-Matabiau.
-
-**CHUNK DE CODE A ECRIRE**
+4. Encapsuler le code précédent dans une fonction renvoyant les coordonnées d'une gare à partir de la chaîne de caractère du nom de la gare. Faire un test en affichant les coordonnées de la gare de Toulouse-Matabiau.
 
 ```{r}
-#| echo: FALSE
-#| class-output: output
+#| code-fold: true
+#| code-summary: Cliquez pour voir la réponse
+#| code-overflow: scroll
+#| eval: true
+#| lst-label: lst-get_station_coordinates
+#| lst-cap: get_station_coordinates
 
-getStationCoordinates <- function(station, verbose = TRUE){
+get_station_coordinates <- function(station, data, verbose = TRUE){
   
-  # Cas particulier pour Strasbourg-Ville
-  if (station == "Strasbourg-Ville"){
-    coords <- c(48.584488, 7.735626)
-  # Cas général
-  }else{
-    data <- stationsData %>% 
-      filter(libelle == station)
-    coords <- c(as.numeric(data$lat[1]),as.numeric(data$lng[1]))
-  }
-  
+  coords <- data |>
+    dplyr::select(lng = x_wgs84, lat = y_wgs84, libelle) |>
+    dplyr::filter(libelle == station) |>
+    dplyr::summarise(lat = dplyr::first(as.numeric(lat)), lng = dplyr::first(as.numeric(lng))) |>
+    unlist(use.names = FALSE)
+
   # Si verbose est TRUE, on affiche les coordonnées
   if (verbose){
-    cat(station, " -> (", coords[1],", ",coords[2], ")\n", sep = "")
+    cat(sprintf("%s -> (%f, %f)\n", station, coords[1], coords[2]))
   }
   
   return(coords)
 }
-getStationCoordinates("Toulouse-Matabiau")
+
+tlse_coords <- get_station_coordinates("Toulouse-Matabiau", stations_data)
+
 ```
 
-## 3.Obtention du temps de transport entre 2 villes
+::: 
 
-L'objectif de la partie 3 est de récupérer le temps de transport entre deux gares à partir de leur nom en combinant la fonction *getTraveltimeAPIResponse* donnée dans la partie 1 et la fonction créée en partie 2
+
+# Obtention du temps de transport entre 2 villes
+
+L'objectif de cette partie est de récupérer le temps de transport entre deux gares à partir de leur nom en combinant la fonction `get_traveltimeAPI_response()` donnée dans la fonction [get_traveltimeAPI_response()](api.qmd#lst-get_traveltimeAPI_response) et la fonction [get_station_coordinates()](#lst-get_station_coordinates).
+
+::: {.callout-tip collapse="false" icon=false}
+## `<i class="bi bi-book"></i>`{=html} Exercice 3 : Calcul du temps de transport
+
+1. Crée une fonction qui prend en paramètres deux couples de coordonnées et qui renvoie un JSON (en chaine de caractère) destiné à l'API de routage.
+
+```{r}
+#| code-fold: true
+#| code-summary: Cliquez pour voir la réponse
+#| code-overflow: scroll
+#| eval: true
+
+get_routes_api_json <- function(coords1, coords2){
+  # On créé le JSON pour l'API de routage en se basant sur celui de la sous-partie "Interaction avec l'API de routage de TravelTime"
+  request_body <- sprintf('{
+    "locations": [
+      {
+        "id": "point-from",
+        "coords": {
+          "lat": %f ,
+          "lng": %f 
+        }
+      },
+      {
+        "id": "point-to-1",
+        "coords": {
+          "lat": %f ,
+          "lng": %f 
+        }
+      }
+    ],
+    "departure_searches": [
+      {
+        "id": "departure-search",
+        "transportation": {
+          "type": "public_transport",
+          "walking_time": 900,
+          "cycling_time_to_station": 100,
+          "parking_time": 0,
+          "boarding_time": 0,
+          "driving_time_to_station": 1800,
+          "pt_change_delay": 0,
+          "disable_border_crossing": false
+        },
+        "departure_location_id": "point-from",
+        "arrival_location_ids": [
+          "point-to-1"
+        ],
+        "departure_time": "2024-06-05T18:00:00.000Z",
+        "properties": [
+          "travel_time",
+          "route"
+        ],
+        "range": {
+          "enabled": true,
+          "max_results": 5,
+          "width": 43200
+        }
+      }
+    ]
+  }' , coords1[1], coords1[2], coords2[1], coords2[2])
+  return(request_body)
+}
+```
+
+:::
 
 Dans un premier temps, crée une fonction qui prend en paramètre deux couples de coordonnées et qui renvoie un JSON (en chaine de caractères) destiné à l'API de routage en faisant de la concaténation de chaînes de caractères
 
@@ -290,7 +395,7 @@ for (i in 1:length(stations)){
 underThresholdRoutes
 ```
 
-## 4.Téléchargement et traitement des données de trafic aérien entre deux villes
+# Téléchargement et traitement des données de trafic aérien entre deux villes
 
 Cette avant dernière partie du sujet consiste à télécharger et traiter des données de trafic aérien entre deux aéroports en 2019 pour calculer les émissions de CO2 du trafic aérien entre les couples de villes/de gares identifiés précédemment et d'en déduire les émissions de CO2 approximatives évitées avec des mesures hypothétiques d'interdictions de liaisons aériennes.
 
