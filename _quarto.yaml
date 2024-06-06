@@ -31,9 +31,9 @@ website:
       - text: "Présentation du sujet"
         href: index.qmd
       - text: "API"
-        href: api.qmd
+        href: 1-api.qmd
       - text: "Analyse des données"
-        href: analyse.qmd
+        href: 2-analyse.qmd
       - text: "Datavisualisation"
         href: index.qmd
 

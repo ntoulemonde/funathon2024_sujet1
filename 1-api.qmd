@@ -170,16 +170,16 @@ if (httr::status_code(response) == 200) {
 }
 ```
 
-10. Créez une fonction `get_traveltimeAPI_response()` qui renvoie la réponse de l'API de TravelTime pour un endpoint et une requête donnés. 
+10. Créez une fonction `get_travel_time_api_response()` qui renvoie la réponse de l'API de TravelTime pour un endpoint et une requête donnés. 
 
 ```{r}
 #| code-fold: true
 #| code-summary: Cliquez pour voir la réponse
 #| code-overflow: scroll
-#| lst-label: lst-get_traveltimeAPI_response
-#| lst-cap: get_traveltimeAPI_response
+#| lst-label: lst-get_travel_time_api_response
+#| lst-cap: get_travel_time_api_response
 
-get_traveltimeAPI_response <- function(api_url, request_body) {
+get_travel_time_api_response <- function(api_url, request_body) {
   # On prépare les headers
   headers <- httr::add_headers("Content-Type" = "application/json",
                                 "X-Application-Id" = X_API_ID,
@@ -208,7 +208,7 @@ get_traveltimeAPI_response <- function(api_url, request_body) {
 #| code-summary: Cliquez pour voir la réponse
 #| code-overflow: scroll
 
-response_from_function <- get_traveltimeAPI_response(ROUTES_API_URL, request_body)
+response_from_function <- get_travel_time_api_response(ROUTES_API_URL, request_body)
 
 ```
 

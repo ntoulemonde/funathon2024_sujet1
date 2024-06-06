@@ -8,8 +8,7 @@ format:
     css: style/custom_styles.css
 
 ---
-
-
+  
 # Récupération des coordonnées des villes françaises
  
 L'objectif de cette partie est de récupérer les coordonnées géographiques des gares françaises à partir d'une base de données disponible en accès ouvert sur [data.gouv.fr](https://www.data.gouv.fr/).
@@ -119,12 +118,19 @@ tlse_coords <- get_station_coordinates("Toulouse-Matabiau", stations_data)
 
 # Obtention du temps de transport entre 2 villes
 
-L'objectif de cette partie est de récupérer le temps de transport entre deux gares à partir de leur nom en combinant la fonction `get_traveltimeAPI_response()` donnée dans la fonction [get_traveltimeAPI_response()](api.qmd#lst-get_traveltimeAPI_response) et la fonction [get_station_coordinates()](#lst-get_station_coordinates).
+L'objectif de cette partie est de récupérer le temps de transport entre deux gares à partir de leur nom en combinant la fonction `get_travel_time_api_response()` donnée dans la fonction [get_travel_time_api_response()](api.qmd#lst-get_travel_time_api_response) et la fonction [get_station_coordinates()](#lst-get_station_coordinates).
 
 ::: {.callout-tip collapse="false" icon=false}
 ## `<i class="bi bi-book"></i>`{=html} Exercice 3 : Calcul du temps de transport
 
-1. Crée une fonction qui prend en paramètres deux couples de coordonnées et qui renvoie un JSON (en chaine de caractère) destiné à l'API de routage.
+1. Créez une fonction qui prend en paramètres deux couples de coordonnées et qui renvoie un JSON (en chaine de caractère) destiné à l'API de routage. Utilisez ces paramètres par défaut dans votre corps de requête :
+
+  -   Lieu de départ : Variable (coords1)
+  -   Lieu d'arrivée : Variable (coords2)
+  -   Mode de transport : Transport public (bus, métro, tram, train)
+  -   Date et heure : 2024-06-05 à 18h00 UTC
+  -   Flexibilité : 12h00
+  -   Le reste des paramètres par défaut
 
 ```{r}
 #| code-fold: true
@@ -139,14 +145,14 @@ get_routes_api_json <- function(coords1, coords2){
       {
         "id": "point-from",
         "coords": {
-          "lat": %f ,
+          "lat": %f,
           "lng": %f 
         }
       },
       {
         "id": "point-to-1",
         "coords": {
-          "lat": %f ,
+          "lat": %f,
           "lng": %f 
         }
       }
@@ -185,155 +191,71 @@ get_routes_api_json <- function(coords1, coords2){
 }
 ```
 
+2. En utilisant la fonction précédement écrite, créer une fonction qui prend en paramètre deux noms de gares et qui renvoie le temps (en heure) de transport du trajet le plus court entre ces 2 gares. Il faudra prendre soin de gérer le cas où aucun trajet n'est trouvé en renvoyant *Inf*.
+
+
+```{r}
+#| code-fold: true
+#| code-summary: Cliquez pour voir la réponse
+#| code-overflow: scroll
+#| eval: true
+
+get_travel_time_between_stations <- function(station1, station2, data, verbose = TRUE) {
+  # Récupérer les coordonnées pour les deux stations
+  coordinates1 <- get_station_coordinates(station1, data, verbose = FALSE)
+  coordinates2 <- get_station_coordinates(station2, data, verbose = FALSE)
+
+  # Générer le JSON pour l'API de routage
+  request_body <- get_routes_api_json(coordinates1, coordinates2)
+  
+  # Interroger l'API de routage
+  response <- get_travel_time_api_response(ROUTES_API_URL, request_body)
+
+  # Gérer la limitation du taux d'API
+  if (response[[2]] == 429) {
+    if (verbose) cat("Trop de requêtes, attente d'une minute...\n")
+    Sys.sleep(60)
+    return(get_travel_time_between_stations(station1, station2, data, verbose))
+  }
+
+  # Vérifier l'existence d'un itinéraire valide
+  if (length(response[[1]]$results[[1]]$locations) == 0) {
+    travel_time <- Inf
+  } else {
+    # Extraire les données de temps de trajet et trouver le temps de trajet minimum en heures
+    travel_times <- sapply(response[[1]]$results[[1]]$locations[[1]]$properties, function(item) item$travel_time)
+    travel_time <- min(travel_times) / 3600
+  }
+
+  # Afficher le temps de trajet si verbose
+  if (verbose) {
+    message_text <- sprintf("%s -> %s : %s heures\n", station1, station2, ifelse(is.infinite(travel_time), "Aucun itinéraire trouvé", travel_time))
+    cat(message_text)
+  }
+
+  return(travel_time)
+}
+
+```
+
+3. Tester votre fonction avec Paris-Montparnasse et Toulouse-Matabiau.
+
+```{r}
+#| code-fold: true
+#| code-summary: Cliquez pour voir la réponse
+#| code-overflow: scroll
+#| eval: true
+
+travel_time <- get_travel_time_between_stations("Paris-Montparnasse", "Toulouse-Matabiau", stations_data)
+travel_time
+```
+
 :::
 
-Dans un premier temps, crée une fonction qui prend en paramètre deux couples de coordonnées et qui renvoie un JSON (en chaine de caractères) destiné à l'API de routage en faisant de la concaténation de chaînes de caractères
 
-Créer un JSON (en chaine de caractères) pour l'API de routage "routes" de TravelTime à partir de la documentation et du playground disponible [ici](https://playground.traveltime.com/routes) avec les caractéristiques ci-dessous afin qu'il servent de base pour cette fonction :
 
--   Lieu de départ : Variable (lat1, lng1)
 
--   Lieu d'arrivée : Variable (lat2, lng2)
 
--   Mode de transport : Transport public (bus, métro, tram, train)
-
--   Date et heure : 2024-06-05 à 18h00 UTC
-
--   Flexibilité : 12h00
-
--   Le reste des paramètres par défaut
-
-**CHUNK DE CODE A ECRIRE**
-
-```{r}
-#| echo: FALSE
-#| class-output: output
-
-getRoutesApiJson <- function(lat1, lng1, lat2, lng2){
-  # On créé le JSON pour l'API de routage en se basant sur celui de la sous-partie "Interaction avec l'API de routage de TravelTime"
-  json <- paste0('{
-    "locations": [
-      {
-        "id": "point-from",
-        "coords": {
-          "lat": ', lat1, ',
-          "lng": ', lng1, '
-        }
-      },
-      {
-        "id": "point-to-1",
-        "coords": {
-          "lat": ', lat2, ',
-          "lng": ', lng2, '
-        }
-      }
-    ],
-    "departure_searches": [
-      {
-        "id": "departure-search",
-        "transportation": {
-          "type": "public_transport",
-          "walking_time": 900,
-          "cycling_time_to_station": 100,
-          "parking_time": 0,
-          "boarding_time": 0,
-          "driving_time_to_station": 1800,
-          "pt_change_delay": 0,
-          "disable_border_crossing": false
-        },
-        "departure_location_id": "point-from",
-        "arrival_location_ids": [
-          "point-to-1"
-        ],
-        "departure_time": "2024-06-05T18:00:00.000Z",
-        "properties": [
-          "travel_time",
-          "route"
-        ],
-        "range": {
-          "enabled": true,
-          "max_results": 5,
-          "width": 43200
-        }
-      }
-    ]
-  }')
-  return(json)
-}
-```
-
-Maintenant, en utilisant la fonction précédement écrite, le but est de créer une fonction qui prend en paramètre deux noms de gares et qui renvoie le temps de transport en heure du trajet le plus court entre ces 2 gares. Il faudra prendre soin de gérer le cas où aucun trajet n'est trouvé en renvoyant *Inf*.
-
-**CHUNK DE CODE A ECRIRE**
-
-```{r}
-#| echo: FALSE
-#| class-output: output
-
-getTravelTimeBetweenStations <- function(station1, station2, verbose = TRUE){
-  # On récupère les coordonnées des villes
-  coordinates1 <- getStationCoordinates(station1, verbose = FALSE)
-  coordinates2 <- getStationCoordinates(station2, verbose = FALSE)
-  
-  # On récupère le JSON pour l'API de routage
-  json <- getRoutesApiJson(coordinates1[1], coordinates1[2], coordinates2[1], coordinates2[2])
-  
-  # On questionne l'API de routage avec le json
-  response <- getTraveltimeAPIResponse(ROUTES_API_URL, json)
-  
-  # Si on a le code de réponse 429, on dépasse le quota de requêtes par minute
-  # donc on attend 1 minute et on relance la fonction en récursion
-  if (response[[2]] == 429){
-    print("Trop de requêtes, on attend une minute...")
-    Sys.sleep(60)
-    return(getTravelTimeBetweenStations(station1, station2, verbose))
-  }
-  
-  # Si aucun itinéraire n'a été trouvé
-  if (length(response[[1]]$results[[1]]$locations) == 0){
-      travelTime <- Inf
-      # On affiche le temps de trajet si verbose est TRUE
-      if (verbose){
-        cat(station1, " -> ", station2, " : ", travelTime, "\n")
-      }
-      return(travelTime)
-  # Sinon
-  }else{
-    # On extrait la liste des descriptions des itinéraires trouvés
-    apiData <- response[[1]]$results[[1]]$locations[[1]]$properties
-    
-    # On boucle sur apiData pour récupérer les temps de trajet
-    travelTimes <- c()
-    for (i in 1:length(apiData)){
-      # On convertit le temps de trajet en heures et on l'ajoute à travelTimes
-      travelTime <- apiData[[i]]$travel_time
-      travelTimes <- c(travelTimes, travelTime)
-    }
-    
-    # On récupère l'itinéraire le plus court et on convertie le temps de trajet en heures
-    travelTime <- min(travelTimes) / 3600
-    
-    # On affiche le temps de trajet si verbose est TRUE
-    if (verbose){
-      cat(station1, " -> ", station2, " : ", travelTime, "\n")
-    }
-    
-    return(travelTime)
-  }
-}
-```
-
-Tester la fonction avec Paris-Montparnasse et Toulouse-Matabiau
-
-**CHUNK DE CODE A ECRIRE**
-
-```{r}
-#| echo: FALSE
-#| class-output: output
-
-travelTime <- getTravelTimeBetweenStations("Paris-Montparnasse", "Toulouse-Matabiau")
-travelTime
-```
 
 Faire une matrice temporelle des temps de trajet entre les gares des 10 plus grandes agglomérations françaises (on considerera que la matrice est symétrique pour la compléter plus rapidement)
 
