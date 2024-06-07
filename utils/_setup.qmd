@@ -24,14 +24,19 @@ get_travel_time_api_response <- function(api_url, request_body) {
   }
 }
 
+
 get_station_coordinates <- function(station, data, verbose = TRUE){
   
-  coords <- data |>
-    dplyr::select(lng = x_wgs84, lat = y_wgs84, libelle) |>
-    dplyr::filter(libelle == station) |>
-    dplyr::summarise(lat = dplyr::first(as.numeric(lat)), lng = dplyr::first(as.numeric(lng))) |>
-    unlist(use.names = FALSE)
-
+  if (station != "Strasbourg-Ville") {
+    coords <- data |>
+      dplyr::select(lng = x_wgs84, lat = y_wgs84, libelle) |>
+      dplyr::filter(libelle == station) |>
+      dplyr::summarise(lat = dplyr::first(as.numeric(lat)), lng = dplyr::first(as.numeric(lng))) |>
+      unlist(use.names = FALSE)
+  } else {
+    coords <- c(48.584488, 7.735626)
+  }
+  
   # Si verbose est TRUE, on affiche les coordonnées
   if (verbose){
     cat(sprintf("%s -> (%f, %f)\n", station, coords[1], coords[2]))

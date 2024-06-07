@@ -81,9 +81,9 @@ coords <- stations_data |>
 
 4. Encapsuler le code précédent dans une fonction renvoyant les coordonnées d'une gare à partir de la chaîne de caractère du nom de la gare. Faire un test en affichant les coordonnées de la gare de Toulouse-Matabiau.
 
-  ::::{.callout-warning}
-  Dans le jeu de données des stations de France, le point géographique pour la gare de Strasbourg-Ville si situe au milieu des rails... point qui est considéré inatteignable pour l'API de TravelTime. Utiliser le point $(48.584488, 7.735626)$ pour cette gare, qui correspond à l'entrée de la gare.
-  ::::
+::::{.callout-warning}
+Dans le jeu de données des stations de France, le point géographique pour la gare de Strasbourg-Ville si situe au milieu des rails... point qui est considéré inatteignable pour l'API de TravelTime. Utiliser le point $(48.584488, 7.735626)$ pour cette gare, qui correspond à l'entrée de la gare.
+::::
 
 ```{r}
 #| code-fold: true
@@ -107,7 +107,7 @@ get_station_coordinates <- function(station, data, verbose = TRUE){
   if (verbose){
     cat(sprintf("%s -> (%f, %f)\n", station, coords[1], coords[2]))
   }
-  
+
   return(coords)
 }
 
@@ -380,7 +380,7 @@ kableExtra::kbl(air_traffic_df_to_print,
 3. Créer une fonction qui renvoie le trafic total d'une liaison en 2019 en PKT (produit du nombre de passagers et de la distance parcourue) à partir des deux noms de villes (et non d'aéroport) en paramètre.
 
 ::::{.callout-tip}
-1. Les noms des principaux aéroports de métropole contiennent le nom de la ville qu'il déssert. 
+1. Les noms des principaux aéroports de métropole contiennent le nom de la ville qu'il dessert. 
 2. Le nombre de passagers correspond à la variable `LSN_PAX_loc`. 
 3. N'oubliez pas de prendre en compte le trafic aérien dans les deux sens.
 4. Paris qui possède 2 aéroports commerciaux
@@ -420,7 +420,7 @@ get_air_traffic_between_cities("Paris", "Toulouse", air_traffic_df)
 5. Sommer le trafic aérien pour chaque couple de villes reliées par un temps de trajet inférieur à 4h30
 
 ::::{.callout-tip}
-Les noms des principales gares de métropole contiennent le nom de la ville qu'il déssert
+Les noms des principales gares de métropole contiennent le nom de la ville qu'il dessert.
 ::::
 
 ```{r}

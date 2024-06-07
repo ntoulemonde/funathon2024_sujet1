@@ -44,6 +44,7 @@ A la différence de l'API de routage de TravelTime, l'API de Stadia Maps pour ob
 
 ::::{.callout-tip}
 Pour récupérer le format de l'URL vous pouvez regarder ces pages de la documentation :
+
 - [Raster Map Tiles](https://docs.stadiamaps.com/raster/)
 - [Map Styles](https://docs.stadiamaps.com/map-styles/alidade-smooth/)
 ::::
