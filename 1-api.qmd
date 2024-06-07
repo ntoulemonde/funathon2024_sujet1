@@ -31,9 +31,9 @@ C'est un format de fichier simplifié qui permet de stocker des données structu
 ::: {.callout-tip collapse="false" icon=false}
 ## `<i class="bi bi-book"></i>`{=html} Exercice 1 : Se familiariser avec l'API de TravelTime
 
-1. Après avoir créé votre compte sur [TravelTime](https://account.traveltime.com/) et récupéré vos identifiants, stockez les dans un fichier `secret.yaml` comme ci-dessous : 
+1. Après avoir créé votre compte sur [TravelTime](https://account.traveltime.com/) et récupéré vos identifiants, stockez les dans un fichier `secrets.yaml` comme ci-dessous : 
 
-   ```{.yaml filename="secret.yaml"}
+   ```{.yaml filename="secrets.yaml"}
    travelTime:
      X_API_ID: "votre_id_api_ici"
      X_API_KEY: "votre_clé_api_ici"
@@ -51,7 +51,7 @@ C'est un format de fichier simplifié qui permet de stocker des données structu
 
 Afin de vérifier que nous arrivons à communiquer avec l'API, nous allons effectuer la même requête présentée dans le playground directement dans notre console R.
  
-4. Grâce au package `yaml`, importez le contenu du fichier `secret.yaml` et stocker le contenu dans les variables `X_API_ID` et `X_API_KEY`.
+4. Grâce au package `yaml`, importez le contenu du fichier `secrets.yaml` et stocker le contenu dans les variables `X_API_ID` et `X_API_KEY`.
 
 
 ```{r}

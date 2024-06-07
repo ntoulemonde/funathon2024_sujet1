@@ -35,7 +35,7 @@ website:
       - text: "Analyse des données"
         href: 2-analyse.qmd
       - text: "Datavisualisation"
-        href: index.qmd
+        href: 3-dataviz.qmd
 
 format:
   html:
@@ -47,4 +47,4 @@ format:
     code-overflow: wrap
 
 execute: 
-  eval: false
+  eval: true
