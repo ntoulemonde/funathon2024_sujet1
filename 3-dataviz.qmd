@@ -11,7 +11,7 @@ execute:
   eval: true
 ---
 
-{{< include setup.qmd >}}
+{{< include utils/_setup.qmd >}}
 
 Cette dernière partie du sujet consiste à visualiser les émissions de CO2 précédemment calculées sur une carte interactive avec le package [leaflet](https://leafletjs.com/) et des fonds de carte de [Stadia Maps](https://stadiamaps.com/) afin d'identifier visuellement les liaisons aériennes les plus émissives.
 

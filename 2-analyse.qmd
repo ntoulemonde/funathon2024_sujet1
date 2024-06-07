@@ -8,7 +8,7 @@ format:
     css: style/custom_styles.css
 ---
 
-{{< include setup.qmd >}}
+{{< include utils/_setup.qmd >}}
 
 # Récupération des coordonnées des villes françaises
  

@@ -169,8 +169,7 @@ STATIONS_DATA_URL <- "https://www.data.gouv.fr/fr/datasets/r/d22ba593-90a4-4725-
 stations_data <- read.csv2(STATIONS_DATA_URL)
 
 # Define the stations
-STATIONS <- c("Paris-Nord", "Lyon-Perrache", "Marseille-St-Charles")
-# , "Toulouse-Matabiau", "Lille-Flandres", "Bordeaux-St-Jean", "Nice-Ville", "Nantes", "Strasbourg-Ville", "Montpellier-St-Roch")
+STATIONS <- c("Paris-Nord", "Lyon-Perrache", "Marseille-St-Charles", "Toulouse-Matabiau", "Lille-Flandres", "Bordeaux-St-Jean", "Nice-Ville", "Nantes", "Strasbourg-Ville", "Montpellier-St-Roch")
 
 # Initialisation de la matrice
 time_matrix <- matrix(NA, nrow = length(STATIONS), ncol = length(STATIONS), dimnames = list(STATIONS, STATIONS))
