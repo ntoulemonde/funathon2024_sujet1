@@ -6,7 +6,6 @@ format:
   html:
     number-sections: true
     css: style/custom_styles.css
-
 ---
  
 
@@ -189,13 +188,15 @@ get_travel_time_api_response <- function(api_url, request_body) {
 
   # On vérifie s'il y a eu une erreur
   if (!httr::http_error(response)) {
-    content <- httr::content(response, as = "parsed")
-    code <- httr::status_code(response)
-    return(list("Content" = content, "Status_code" = code))
+    return(list("Content" = httr::content(response, as = "parsed"), 
+                "Status_code" = httr::status_code(response)
+                )
+          )
   } else {
     # On affiche une message d'avertissement lorsque la requête n'a rien renvoyé
     warning("Failed to retrieve data: ", httr::http_status(response)$message)
-    return(NULL)
+    return(list("Content" = NA, 
+                "Status_code" = httr::status_code(response)))
   }
 }
 
