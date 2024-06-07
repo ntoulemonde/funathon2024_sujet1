@@ -148,9 +148,9 @@ for (i in 1:nrow(emission_by_route_df)) {
   weight <- 1  # poids par défaut
 
   # Si les émissions sont supérieures à zéro, ajuster la couleur et le poids
-  if (emission_by_route_df[i, "emissions"] > 0) {
+  if (emission_by_route_df$emissions[i] > 0) {
     color <- "red"
-    weight <- emission_by_route_df[i, "emissions"] / 10000
+    weight <- emission_by_route_df$emissions[i] / 10000
   }
 
   # Ajouter des lignes à la carte
