@@ -25,11 +25,17 @@ jobs:
           with:
             r-version: '4.3.3'
 
+        - name: Install some lib system
+          run: | 
+            sudo apt-get update
+            sudo apt-get install libproj22
+            sudo apt-get install libudunits2-dev
+            sudo apt-get install libgdal30
+
         - name: Install R Dependencies
           uses: r-lib/actions/setup-renv@v2
           with:
             cache-version: 1
-
 
         - name: Create secrets.yaml file
           run: | 
