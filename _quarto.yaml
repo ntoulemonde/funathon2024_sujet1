@@ -1,6 +1,8 @@
 project:
   type: website
-
+  render:
+    - "*.qmd"
+    - "!setup.qmd"
 website:
   title: "Funathon 2024 - Sujet 2"
   page-navigation: true
@@ -48,3 +50,4 @@ format:
 
 execute: 
   eval: true
+  cache: true

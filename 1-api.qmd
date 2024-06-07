@@ -30,7 +30,7 @@ C'est un format de fichier simplifié qui permet de stocker des données structu
 ::: {.callout-tip collapse="false" icon=false}
 ## `<i class="bi bi-book"></i>`{=html} Exercice 1 : Se familiariser avec l'API de TravelTime
 
-1. Après avoir créé votre compte sur [TravelTime](https://account.traveltime.com/) et récupéré vos identifiants, stockez les dans un fichier `secrets.yaml` comme ci-dessous : 
+1. Créer un compte sur [TravelTime](https://account.traveltime.com/) et récupérer les identifiants, les stocker dans un fichier `secrets.yaml` comme ci-dessous : 
 
    ```{.yaml filename="secrets.yaml"}
    travelTime:
@@ -38,7 +38,7 @@ C'est un format de fichier simplifié qui permet de stocker des données structu
      X_API_KEY: "votre_clé_api_ici"
    ```
 
-2. Afin de prévenir un malencontreux commit de ce fichier, rajoutez le dans le `.gitignore` du projet afin qu'il ne puisse pas être *poussé* sur Github.
+2. Afin de prévenir un malencontreux commit de ce fichier, le rajouter dans le `.gitignore` du projet afin qu'il ne soit pas *poussé* sur Github.
 
    ```{.yaml filename=".gitignore"}
    /.quarto/
@@ -46,16 +46,16 @@ C'est un format de fichier simplifié qui permet de stocker des données structu
    secrets.yaml
    ```
 
-3. Nous allons dorénavant pouvoir tester l'API, mais avant toute chose, prenez le temps de jeter un coup d'oeil à la documentation de l'API ([ici](https://docs.traveltime.com/api/overview/introduction)). Vous pouvez également vous rendre sur le [*playground*](https://playground.traveltime.com/routes) de l'API pour vous familiariser avec son fonctionnement.
+3. On va pouvoir tester l'API, mais avant toute chose, prendre le temps de jeter un coup d'oeil à la documentation de l'API ([ici](https://docs.traveltime.com/api/overview/introduction)). Se rendre sur le [*playground*](https://playground.traveltime.com/routes) de l'API pour se familiariser avec son fonctionnement.
 
 Afin de vérifier que nous arrivons à communiquer avec l'API, nous allons effectuer la même requête présentée dans le playground directement dans notre console R.
  
-4. Grâce au package `yaml`, importez le contenu du fichier `secrets.yaml` et stocker le contenu dans les variables `X_API_ID` et `X_API_KEY`.
+4. Grâce au package `yaml`, importer le contenu du fichier `secrets.yaml` et stocker le contenu dans les variables `X_API_ID` et `X_API_KEY`.
 
 
 ```{r}
 #| code-fold: true
-#| code-summary: Cliquez pour voir la réponse
+#| code-summary: Cliquer pour voir la réponse
 #| code-overflow: scroll
 
 secrets <- yaml::read_yaml("secrets.yaml")
@@ -64,11 +64,11 @@ X_API_KEY <- secrets$travelTime$X_API_KEY
 ```
 
 
-5. En lisant la documentation, ou en observant bien le *playgroud* trouvez le *endpoint* de l'API de routage. Il s'agit de l'URL via lequel nous allons communiquer avec l'API. Stockez la dans la variable `ROUTES_API_URL`.
+5. En lisant la documentation, ou en observant bien le *playgroud* trouver le *endpoint* de l'API de routage. Il s'agit de l'URL via lequel nous allons communiquer avec l'API. Stocker la dans la variable `ROUTES_API_URL`.
 
 ```{r}
 #| code-fold: true
-#| code-summary: Cliquez pour voir la réponse
+#| code-summary: Cliquer pour voir la réponse
 #| code-overflow: scroll
 
 ROUTES_API_URL <- "https://api.traveltimeapp.com/v4/routes"
@@ -80,7 +80,7 @@ ROUTES_API_URL <- "https://api.traveltimeapp.com/v4/routes"
 
 ```{r}
 #| code-fold: true
-#| code-summary: Cliquez pour voir la réponse
+#| code-summary: Cliquer pour voir la réponse
 #| code-overflow: scroll
 
 request_body <- '
@@ -126,11 +126,11 @@ request_body <- '
 }'
 ```
 
-7. Avec le package `httr`, définissez l'en-tête de votre requête, celle-ci doit contenir votre ID et votre clé afin que l'API puisse bien vous identifier et vous renvoyer une réponse. 
+7. Avec le package `httr`, définir l'en-tête de la requête, celle-ci doit contenir l'ID et la clé afin que l'API puisse bien vous identifier et renvoyer une réponse. 
 
 ```{r}
 #| code-fold: true
-#| code-summary: Cliquez pour voir la réponse
+#| code-summary: Cliquer pour voir la réponse
 #| code-overflow: scroll
 
 headers <- httr::add_headers("Content-Type" = "application/json",
@@ -138,11 +138,11 @@ headers <- httr::add_headers("Content-Type" = "application/json",
                              "X-Api-Key" = X_API_KEY)
 ```
 
-8. Vous pouvez dès à présent envoyer votre requête. Notez qu'on va utilisez ici la méthode POST, notamment car on a besoin d'une authentification. Si vous souhaitez aller un peu plus loin sur les différences entre les méthodes **GET** et **POST**, vous pouvez regarder ce [post](https://www.ionos.fr/digitalguide/sites-internet/developpement-web/get-vs-post/).
+8. Il est dès à présent possible d'envoyer une requête. On va utiliser ici la méthode POST, notamment car on a besoin d'une authentification. Pour aller un peu plus loin sur les différences entre les méthodes **GET** et **POST**, vous pouvez regarder ce [post](https://www.ionos.fr/digitalguide/sites-internet/developpement-web/get-vs-post/).
 
 ```{r}
 #| code-fold: true
-#| code-summary: Cliquez pour voir la réponse
+#| code-summary: Cliquer pour voir la réponse
 #| code-overflow: scroll
 
 response <- httr::POST(ROUTES_API_URL, body = request_body, encode = "json", headers)
@@ -151,12 +151,12 @@ content <- httr::content(response)
 ```
 
 
-9. Vérifiez que votre requête a bien été reçue et traitée par l'API en regardant le code de retour, celui-ci doit être égal à 200. Si c'est bien le cas, regardez la réponse de l'API, vous devriez obtenir quelque chose similaire à ce qui est affiché ci-dessous.
+9. Vérifier que la requête a bien été reçue et traitée par l'API en regardant le code de retour, celui-ci doit être égal à 200. Si c'est bien le cas, regarder la réponse de l'API, elle devrait être similaire à ce qui est affiché ci-dessous.
 
 ```{r}
 #| class-output: long-output
 #| code-fold: true
-#| code-summary: Cliquez pour voir la réponse
+#| code-summary: Cliquer pour voir la réponse
 #| code-overflow: scroll
 
 if (httr::status_code(response) == 200) {
@@ -169,14 +169,12 @@ if (httr::status_code(response) == 200) {
 }
 ```
 
-10. Créez une fonction `get_travel_time_api_response()` qui renvoie la réponse de l'API de TravelTime pour un endpoint et une requête donnés. 
+10. Créer une fonction `get_travel_time_api_response()` qui renvoie la réponse de l'API de TravelTime pour un endpoint et une requête donnés. 
 
 ```{r}
 #| code-fold: true
-#| code-summary: Cliquez pour voir la réponse
+#| code-summary: Cliquer pour voir la réponse
 #| code-overflow: scroll
-#| lst-label: lst-get_travel_time_api_response
-#| lst-cap: get_travel_time_api_response
 
 get_travel_time_api_response <- function(api_url, request_body) {
   # On prépare les headers
@@ -202,23 +200,23 @@ get_travel_time_api_response <- function(api_url, request_body) {
 
 ```
 
-11. Vérifiez que votre fonction marche bien en utilisant la même requête que lors de la question 8 et comparez les réponses.
+11. Vérifier que votre fonction marche bien en utilisant la même requête que lors de la question 8 et comparez les réponses.
 
 ```{r}
 #| code-fold: true
-#| code-summary: Cliquez pour voir la réponse
+#| code-summary: Cliquer pour voir la réponse
 #| code-overflow: scroll
 
 response_from_function <- get_travel_time_api_response(ROUTES_API_URL, request_body)
 
 ```
 
-12. Explorez attentivement la réponse puis affectez la liste des descriptions des itinéraires trouvés dans une variable `list_itinerary` (liste nommée *properties* dans le JSON).
+12. Explorer attentivement la réponse puis affecter la liste des descriptions des itinéraires trouvés à une variable `list_itinerary` (liste nommée *properties* dans le JSON).
 
 ```{r}
 #| class-output: long-output
 #| code-fold: true
-#| code-summary: Cliquez pour voir la réponse
+#| code-summary: Cliquer pour voir la réponse
 #| code-overflow: scroll
 
 list_itinerary <- response_from_function[[1]]$results[[1]]$locations[[1]]$properties

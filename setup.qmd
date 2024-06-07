@@ -1,0 +1,218 @@
+
+```{r}
+#| echo: false
+
+get_travel_time_api_response <- function(api_url, request_body) {
+  # On prépare les headers
+  headers <- httr::add_headers("Content-Type" = "application/json",
+                                "X-Application-Id" = X_API_ID,
+                                "X-Api-Key" = X_API_KEY)
+  ## On envoie la requête avec les headers spécifiés
+  response <- httr::POST(api_url, body = request_body, encode = "json", headers)
+
+  # On vérifie s'il y a eu une erreur
+  if (!httr::http_error(response)) {
+    return(list("Content" = httr::content(response, as = "parsed"), 
+                "Status_code" = httr::status_code(response)
+                )
+          )
+  } else {
+    # On affiche une message d'avertissement lorsque la requête n'a rien renvoyé
+    warning("Failed to retrieve data: ", httr::http_status(response)$message)
+    return(list("Content" = NA, 
+                "Status_code" = httr::status_code(response)))
+  }
+}
+
+get_station_coordinates <- function(station, data, verbose = TRUE){
+  
+  coords <- data |>
+    dplyr::select(lng = x_wgs84, lat = y_wgs84, libelle) |>
+    dplyr::filter(libelle == station) |>
+    dplyr::summarise(lat = dplyr::first(as.numeric(lat)), lng = dplyr::first(as.numeric(lng))) |>
+    unlist(use.names = FALSE)
+
+  # Si verbose est TRUE, on affiche les coordonnées
+  if (verbose){
+    cat(sprintf("%s -> (%f, %f)\n", station, coords[1], coords[2]))
+  }
+  
+  return(coords)
+}
+
+
+get_routes_api_json <- function(coords1, coords2){
+  # On créé le JSON pour l'API de routage en se basant sur celui de la sous-partie "Interaction avec l'API de routage de TravelTime"
+  request_body <- sprintf('{
+    "locations": [
+      {
+        "id": "point-from",
+        "coords": {
+          "lat": %f,
+          "lng": %f 
+        }
+      },
+      {
+        "id": "point-to-1",
+        "coords": {
+          "lat": %f,
+          "lng": %f 
+        }
+      }
+    ],
+    "departure_searches": [
+      {
+        "id": "departure-search",
+        "transportation": {
+          "type": "public_transport",
+          "walking_time": 900,
+          "cycling_time_to_station": 100,
+          "parking_time": 0,
+          "boarding_time": 0,
+          "driving_time_to_station": 1800,
+          "pt_change_delay": 0,
+          "disable_border_crossing": false
+        },
+        "departure_location_id": "point-from",
+        "arrival_location_ids": [
+          "point-to-1"
+        ],
+        "departure_time": "2024-06-05T18:00:00.000Z",
+        "properties": [
+          "travel_time",
+          "route"
+        ],
+        "range": {
+          "enabled": true,
+          "max_results": 5,
+          "width": 43200
+        }
+      }
+    ]
+  }' , coords1[1], coords1[2], coords2[1], coords2[2])
+  return(request_body)
+}
+
+get_travel_time_between_stations <- function(station1, station2, data, verbose = TRUE) {
+    # Si les stations sont identiques aucun trajet nécessaire
+  if (station1 == station2) {
+    return(NA)
+  }
+
+
+  # Récupérer les coordonnées pour les deux stations
+  coordinates <- lapply(c(station1, station2), get_station_coordinates, data = data, verbose = FALSE)
+
+  # Générer le JSON pour l'API de routage
+  request_body <- get_routes_api_json(coordinates[[1]], coordinates[[2]])
+  
+  # Interroger l'API de routage
+  response <- get_travel_time_api_response(ROUTES_API_URL, request_body)
+
+  # Gérer la limitation du taux d'API
+  if (response[[2]] == 429) {
+    if (verbose) cat("Trop de requêtes, attente d'une minute...\n")
+    Sys.sleep(60)
+    return(get_travel_time_between_stations(station1, station2, data, verbose))
+  }
+
+  # Vérifier l'existence d'un itinéraire valide
+  if (length(response[[1]]$results[[1]]$locations) == 0) {
+    travel_time <- Inf
+  } else {
+    # Extraire les données de temps de trajet et trouver le temps de trajet minimum en heures
+    travel_times <- sapply(response[[1]]$results[[1]]$locations[[1]]$properties, function(item) item$travel_time)
+    travel_time <- min(travel_times) / 3600
+  }
+
+  # Afficher le temps de trajet si verbose
+  if (verbose) {
+    message_text <- sprintf("%s -> %s : %s heures\n", station1, station2, ifelse(is.infinite(travel_time), "Aucun itinéraire trouvé", round(travel_time, 2)))
+    cat(message_text)
+  }
+
+  return(travel_time)
+}
+
+extract_city_name <- function(station) {
+  sapply(station, function(x) strsplit(x, "-")[[1]][1])
+}
+
+get_air_traffic_between_cities <- function(city1, city2, data) {
+  # Calcul du trafic dans les deux sens city1 -> city2 et city2 -> city1
+  total_traffic <- data |>
+    dplyr::filter(
+      (grepl(city1, LSN_DEP_NOM, ignore.case = TRUE) & grepl(city2, LSN_ARR_NOM, ignore.case = TRUE)) |
+        (grepl(city2, LSN_DEP_NOM, ignore.case = TRUE) & grepl(city1, LSN_ARR_NOM, ignore.case = TRUE))
+    ) |>
+    dplyr::summarise(traffic = sum(LSN_DIST * LSN_PAX_loc)) |> # calcul du PKT
+    dplyr::pull(traffic)
+  
+  return(as.numeric(total_traffic))
+}
+
+
+# PART 1 DEPENDENCIES
+
+secrets <- yaml::read_yaml("secrets.yaml")
+X_API_ID <- secrets$travelTime$X_API_ID
+X_API_KEY <- secrets$travelTime$X_API_KEY
+ROUTES_API_URL <- "https://api.traveltimeapp.com/v4/routes"
+
+
+
+
+# PART 2 DEPENDENCIES
+
+STATIONS_DATA_URL <- "https://www.data.gouv.fr/fr/datasets/r/d22ba593-90a4-4725-977c-095d1f654d28"
+
+stations_data <- read.csv2(STATIONS_DATA_URL)
+
+# Define the stations
+STATIONS <- c("Paris-Nord", "Lyon-Perrache", "Marseille-St-Charles")
+# , "Toulouse-Matabiau", "Lille-Flandres", "Bordeaux-St-Jean", "Nice-Ville", "Nantes", "Strasbourg-Ville", "Montpellier-St-Roch")
+
+# Initialisation de la matrice
+time_matrix <- matrix(NA, nrow = length(STATIONS), ncol = length(STATIONS), dimnames = list(STATIONS, STATIONS))
+
+# On remplit la matrice avec toutes les pairs possibles
+combinations <- combn(STATIONS, 2, simplify = FALSE)
+for (pair in combinations) {
+  travel_time <- get_travel_time_between_stations(pair[1], pair[2], stations_data, verbose=FALSE)
+  time_matrix[pair[1], pair[2]] <- round(travel_time, 2)
+  time_matrix[pair[2], pair[1]] <- round(travel_time, 2)
+}
+
+THRESHOLD <- 4.5
+
+# On garde seulement la matrice triangulaire inférieur (car on la supposé symmétrique)
+lower_tri_matrix <- lower.tri(time_matrix)
+
+# On extrait les indices où la condition n'est pas respectée
+under_threshold_indices <- which(time_matrix < THRESHOLD & lower_tri_matrix, arr.ind = TRUE)
+
+# On crée une liste de paires qui remplissent les conditions
+under_threshold_routes <- mapply(function(i, j) c(STATIONS[i], STATIONS[j]),
+                                 i = under_threshold_indices[, 1],
+                                 j = under_threshold_indices[, 2],
+                                 SIMPLIFY = FALSE,
+                                 USE.NAMES = FALSE
+                                 )
+
+# On définit l'URL des données
+AIR_TRAFFIC_DATA_URL <- "https://www.data.gouv.fr/fr/datasets/r/0c0a451e-983b-4f06-9627-b5ff1bccd2fc" 
+
+air_traffic_df <- read.csv2(AIR_TRAFFIC_DATA_URL)
+
+# Extraire les paires de villes 
+city_pairs <- lapply(under_threshold_routes, extract_city_name)
+
+under_threshold_air_traffic <- 0
+
+# Calculer le trafic aérien pour chaque paire
+for (pair in city_pairs) {
+  air_traffic <- get_air_traffic_between_cities(pair[1], pair[2], air_traffic_df)
+  under_threshold_air_traffic <- under_threshold_air_traffic + air_traffic
+}
+
+```

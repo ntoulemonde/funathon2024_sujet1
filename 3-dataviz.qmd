@@ -8,9 +8,10 @@ format:
     css: style/custom_styles.css
 
 execute: 
-  eval: false
+  eval: true
 ---
 
+{{< include setup.qmd >}}
 
 Cette dernière partie du sujet consiste à visualiser les émissions de CO2 précédemment calculées sur une carte interactive avec le package [leaflet](https://leafletjs.com/) et des fonds de carte de [Stadia Maps](https://stadiamaps.com/) afin d'identifier visuellement les liaisons aériennes les plus émissives.
 
@@ -22,7 +23,7 @@ Cette dernière partie du sujet consiste à visualiser les émissions de CO2 pr�
 
 2. Une fois que votre compte est créé et vérifié votre compte, créez une *property* et nommez la *"funathon"*.
 
-3. Cliquez sur *Add API Key*, puis copiez la dans votre fichier `secrets.yaml` créé dans lors de l'exercice 1.
+3. Cliquer sur *Add API Key*, puis la copier dans lz fichier `secrets.yaml` créé dans lors de l'exercice 1.
 
 
    ```{.yaml filename="secrets.yaml"}
@@ -30,7 +31,7 @@ Cette dernière partie du sujet consiste à visualiser les émissions de CO2 pr�
      API_KEY: "votre_clé_api_ici"
    ```
 
-4. Grâce à l'API de `Stadia Maps` permet de récupérer des fonds de carte avec des styles différents en fonction des besoins et préféreces. En vous aidant de la [documentation de l'API](https://docs.stadiamaps.com/), reconstituez l'URL qui récupère une tuile Stadia Maps pour un style donné.
+4. L'API de `Stadia Maps` permet de récupérer des fonds de carte avec des styles différents en fonction des besoins et préféreces. En s'aidant de la [documentation de l'API](https://docs.stadiamaps.com/), reconstituer l'URL qui récupère une tuile Stadia Maps pour un style donné.
 
 
 ::::{.callout-note}
@@ -51,7 +52,7 @@ Pour récupérer le format de l'URL vous pouvez regarder ces pages de la documen
 
 ```{r}
 #| code-fold: true
-#| code-summary: Cliquez pour voir la réponse
+#| code-summary: Cliquer pour voir la réponse
 #| code-overflow: scroll
 
 
@@ -70,8 +71,10 @@ TILES_URL <- sprintf("https://tiles.stadiamaps.com/tiles/%s/{z}/{x}/{y}{r}.png?a
 
 ```{r}
 #| code-fold: true
-#| code-summary: Cliquez pour voir la réponse
+#| code-summary: Cliquer pour voir la réponse
 #| code-overflow: scroll
+
+GCO2_PER_PKT <- 80
 
 emission_by_route_list <- list()
 
@@ -117,11 +120,11 @@ kableExtra::kbl(emission_by_route_df,
 
 ```{r}
 #| code-fold: true
-#| code-summary: Cliquez pour voir la réponse
+#| code-summary: Cliquer pour voir la réponse
 #| code-overflow: scroll
 
-map <- leaflet() %>%
-  addTiles(urlTemplate = TILES_URL)
+map <- leaflet::leaflet() |>
+  leaflet::addTiles(urlTemplate = TILES_URL) 
 ```
 
 7. Faire une boucle pour ajouter toutes les lignes repérées à la carte avec la fonction *addPolylines* de `leaflet` :
@@ -131,7 +134,7 @@ map <- leaflet() %>%
 
 ```{r}
 #| code-fold: true
-#| code-summary: Cliquez pour voir la réponse
+#| code-summary: Cliquer pour voir la réponse
 #| code-overflow: scroll
 
 # Parcourir chaque ligne du dataframe
@@ -150,8 +153,8 @@ for (i in 1:nrow(emission_by_route_df)) {
   }
 
   # Ajouter des lignes à la carte
-  map <- map %>%
-    addPolylines(lat = lat_vector, lng = lng_vector, color = color, opacity = opacity, weight = weight)
+  map <- map |>
+    leaflet::addPolylines(lat = lat_vector, lng = lng_vector, color = color, opacity = opacity, weight = weight)
 }
 
 ```
@@ -162,17 +165,17 @@ for (i in 1:nrow(emission_by_route_df)) {
 
 ```{r}
 #| code-fold: true
-#| code-summary: Cliquez pour voir la réponse
+#| code-summary: Cliquer pour voir la réponse
 #| code-overflow: scroll
 
 
 # Définir les options de label personnalisées
-custom_label_options <- labelOptions(noHide = TRUE, style = list("background" = "rgba(255, 255, 255, 0.5)"))
+custom_label_options <- leaflet::labelOptions(noHide = TRUE, style = list("background" = "rgba(255, 255, 255, 0.5)"))
 
 # Fonction pour ajouter des marqueurs circulaires
 add_circle_marker <- function(map, lat, lng, city, label_options) {
-  map %>% 
-    addCircleMarkers(
+  map |> 
+    leaflet::addCircleMarkers(
       lat = lat,
       lng = lng,
       radius = 5,
@@ -190,12 +193,12 @@ for (i in 1:nrow(emission_by_route_df)) {
 
 ```
 
-9. Affiche la carte
+9. Afficher la carte
 
 
 ```{r}
 #| code-fold: true
-#| code-summary: Cliquez pour voir la réponse
+#| code-summary: Cliquer pour voir la réponse
 #| code-overflow: scroll
 
 map
