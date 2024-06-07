@@ -43,6 +43,7 @@ C'est un format de fichier simplifié qui permet de stocker des données structu
    ```{.yaml filename=".gitignore"}
    /.quarto/
    /_site/
+   /*_cache/
    secrets.yaml
    ```
 
