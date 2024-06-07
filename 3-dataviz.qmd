@@ -140,8 +140,8 @@ map <- leaflet::leaflet() |>
 # Parcourir chaque ligne du dataframe
 for (i in 1:nrow(emission_by_route_df)) {
   # Définir les options par défaut pour les lignes
-  lat_vector <- c(emission_by_route_df[i, "lat1"], emission_by_route_df[i, "lat2"])
-  lng_vector <- c(emission_by_route_df[i, "lng1"], emission_by_route_df[i, "lng2"])
+  lat_vector <- c(emission_by_route_df$lat1[i], emission_by_route_df$lat2[i])
+  lng_vector <- c(emission_by_route_df$lng1[i], emission_by_route_df$lng2[i])
   color <- "black"  # couleur par défaut
   opacity <- 0.5
   weight <- 1  # poids par défaut
@@ -187,8 +187,8 @@ add_circle_marker <- function(map, lat, lng, city, label_options) {
 
 # Boucle pour ajouter des marqueurs pour chaque ligne du dataframe
 for (i in 1:nrow(emission_by_route_df)) {
-  map <- add_circle_marker(map, emission_by_route_df[i, "lat1"], emission_by_route_df[i, "lng1"], emission_by_route_df[i, "city1"], custom_label_options)
-  map <- add_circle_marker(map, emission_by_route_df[i, "lat2"], emission_by_route_df[i, "lng2"], emission_by_route_df[i, "city2"], custom_label_options)
+  map <- add_circle_marker(map, emission_by_route_df$lat1[i], emission_by_route_df$lng1[i], emission_by_route_df$city1[i], custom_label_options)
+  map <- add_circle_marker(map, emission_by_route_df$lat2[i], emission_by_route_df$lng2[i], emission_by_route_df$city2[i], custom_label_options)
 }
 
 ```

@@ -81,6 +81,10 @@ coords <- stations_data |>
 
 4. Encapsuler le code précédent dans une fonction renvoyant les coordonnées d'une gare à partir de la chaîne de caractère du nom de la gare. Faire un test en affichant les coordonnées de la gare de Toulouse-Matabiau.
 
+  ::::{.callout-warning}
+  Dans le jeu de données des stations de France, le point géographique pour la gare de Strasbourg-Ville si situe au milieu des rails... point qui est considéré inatteignable pour l'API de TravelTime. Utiliser le point $(48.584488, 7.735626)$ pour cette gare, qui correspond à l'entrée de la gare.
+  ::::
+
 ```{r}
 #| code-fold: true
 #| code-summary: Cliquer pour voir la réponse
@@ -89,11 +93,15 @@ coords <- stations_data |>
 
 get_station_coordinates <- function(station, data, verbose = TRUE){
   
-  coords <- data |>
-    dplyr::select(lng = x_wgs84, lat = y_wgs84, libelle) |>
-    dplyr::filter(libelle == station) |>
-    dplyr::summarise(lat = dplyr::first(as.numeric(lat)), lng = dplyr::first(as.numeric(lng))) |>
-    unlist(use.names = FALSE)
+  if (station != "Strasbourg-Ville") {
+    coords <- data |>
+      dplyr::select(lng = x_wgs84, lat = y_wgs84, libelle) |>
+      dplyr::filter(libelle == station) |>
+      dplyr::summarise(lat = dplyr::first(as.numeric(lat)), lng = dplyr::first(as.numeric(lng))) |>
+      unlist(use.names = FALSE)
+  } else {
+    coords <- c(48.584488, 7.735626)
+  }
 
   # Si verbose est TRUE, on affiche les coordonnées
   if (verbose){
