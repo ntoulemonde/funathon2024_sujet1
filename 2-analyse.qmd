@@ -51,14 +51,15 @@ stations_data <- read.csv2(STATIONS_DATA_URL)
 
 # On définit l'URL des données
 
-stations_data_to_print <- stations_data |> head(6)
+stations_data_to_print <- stations_data
 
 kableExtra::kbl(stations_data_to_print,
-              "markdown",
-              escape = FALSE,
-              booktabs = TRUE) |>
-  kableExtra::kable_styling(bootstrap_options = c("striped", "hover", "condensed", "responsive"))
-
+  "html",
+  escape = FALSE,
+  booktabs = TRUE
+) |>
+  kableExtra::kable_styling(bootstrap_options = c("striped", "hover", "condensed", "responsive")) |>
+  kableExtra::scroll_box(width = "100%", height = "350px")
 ``` 
 
 </details>
@@ -91,8 +92,7 @@ Dans le jeu de données des stations de France, le point géographique pour la g
 #| code-overflow: scroll
 
 
-get_station_coordinates <- function(station, data, verbose = TRUE){
-  
+get_station_coordinates <- function(station, data, verbose = TRUE) {
   if (station != "Strasbourg-Ville") {
     coords <- data |>
       dplyr::select(lng = x_wgs84, lat = y_wgs84, libelle) |>
@@ -104,7 +104,7 @@ get_station_coordinates <- function(station, data, verbose = TRUE){
   }
 
   # Si verbose est TRUE, on affiche les coordonnées
-  if (verbose){
+  if (verbose) {
     cat(sprintf("%s -> (%f, %f)\n", station, coords[1], coords[2]))
   }
 
@@ -112,7 +112,6 @@ get_station_coordinates <- function(station, data, verbose = TRUE){
 }
 
 tlse_coords <- get_station_coordinates("Toulouse-Matabiau", stations_data, verbose = TRUE)
-
 ```
 
 ::: 
@@ -140,7 +139,7 @@ L'objectif de cette partie est de récupérer le temps de transport entre deux g
 #| code-overflow: scroll
 #| eval: false
 
-get_routes_api_json <- function(coords1, coords2){
+get_routes_api_json <- function(coords1, coords2) {
   # On créé le JSON pour l'API de routage en se basant sur celui de la sous-partie "Interaction avec l'API de routage de TravelTime"
   request_body <- sprintf('{
     "locations": [
@@ -148,14 +147,14 @@ get_routes_api_json <- function(coords1, coords2){
         "id": "point-from",
         "coords": {
           "lat": %f,
-          "lng": %f 
+          "lng": %f
         }
       },
       {
         "id": "point-to-1",
         "coords": {
           "lat": %f,
-          "lng": %f 
+          "lng": %f
         }
       }
     ],
@@ -188,7 +187,7 @@ get_routes_api_json <- function(coords1, coords2){
         }
       }
     ]
-  }' , coords1[1], coords1[2], coords2[1], coords2[2])
+  }', coords1[1], coords1[2], coords2[1], coords2[2])
   return(request_body)
 }
 ```
@@ -202,7 +201,7 @@ get_routes_api_json <- function(coords1, coords2){
 #| eval: false
 
 get_travel_time_between_stations <- function(station1, station2, data, verbose = TRUE) {
-    # Si les stations sont identiques aucun trajet nécessaire
+  # Si les stations sont identiques aucun trajet nécessaire
   if (station1 == station2) {
     return(NA)
   }
@@ -213,7 +212,7 @@ get_travel_time_between_stations <- function(station1, station2, data, verbose =
 
   # Générer le JSON pour l'API de routage
   request_body <- get_routes_api_json(coordinates[[1]], coordinates[[2]])
-  
+
   # Interroger l'API de routage
   response <- get_travel_time_api_response(ROUTES_API_URL, request_body)
 
@@ -241,7 +240,6 @@ get_travel_time_between_stations <- function(station1, station2, data, verbose =
 
   return(travel_time)
 }
-
 ```
 
 3. Tester votre fonction avec Paris-Montparnasse et Toulouse-Matabiau.
@@ -251,7 +249,7 @@ get_travel_time_between_stations <- function(station1, station2, data, verbose =
 #| code-summary: Cliquer pour voir la réponse
 #| code-overflow: scroll
 
-travel_time <- get_travel_time_between_stations("Paris-Montparnasse", "Toulouse-Matabiau", stations_data, verbose=TRUE)
+travel_time <- get_travel_time_between_stations("Paris-Montparnasse", "Toulouse-Matabiau", stations_data, verbose = TRUE)
 ```
 
 4. Faire une matrice temporelle des temps de trajet entre les gares des 10 plus grandes agglomérations françaises (on considerera que la matrice est symétrique pour la compléter plus rapidement). La liste des noms des gares principales (telle qu'écrite dans la base de données en opendata) des 10 plus grandes agglomérations françaises est la suivante : Paris-Nord, Lyon-Perrache, Marseille-St-Charles, Toulouse-Matabiau, Lille-Flandres, Bordeaux-St-Jean, Nice-Ville, Nantes, Strasbourg-Ville et Montpellier-St-Roch.
@@ -277,11 +275,10 @@ time_matrix <- matrix(NA, nrow = length(STATIONS), ncol = length(STATIONS), dimn
 # On remplit la matrice avec toutes les pairs possibles
 combinations <- combn(STATIONS, 2, simplify = FALSE)
 for (pair in combinations) {
-  travel_time <- get_travel_time_between_stations(pair[1], pair[2], stations_data, verbose=FALSE)
+  travel_time <- get_travel_time_between_stations(pair[1], pair[2], stations_data, verbose = FALSE)
   time_matrix[pair[1], pair[2]] <- round(travel_time, 2)
   time_matrix[pair[2], pair[1]] <- round(travel_time, 2)
 }
-
 ```
 
 <details>
@@ -294,11 +291,11 @@ for (pair in combinations) {
 #| df-print: kable
 
 kableExtra::kbl(time_matrix,
-              "markdown",
-              escape = FALSE,
-              booktabs = TRUE) |>
+  "markdown",
+  escape = FALSE,
+  booktabs = TRUE
+) |>
   kableExtra::kable_styling(bootstrap_options = c("striped", "hover", "condensed", "responsive"))
-
 ``` 
 
 </details>
@@ -322,12 +319,11 @@ under_threshold_indices <- which(time_matrix < THRESHOLD & lower_tri_matrix, arr
 
 # On crée une liste de paires qui remplissent les conditions
 under_threshold_routes <- mapply(function(i, j) c(STATIONS[i], STATIONS[j]),
-                                 i = under_threshold_indices[, 1],
-                                 j = under_threshold_indices[, 2],
-                                 SIMPLIFY = FALSE,
-                                 USE.NAMES = FALSE
-                                 )
-
+  i = under_threshold_indices[, 1],
+  j = under_threshold_indices[, 2],
+  SIMPLIFY = FALSE,
+  USE.NAMES = FALSE
+)
 ```
 
 :::
@@ -351,7 +347,7 @@ Cette partie du sujet consiste à télécharger et traiter des données de trafi
 #| eval: false
 
 # On définit l'URL des données
-AIR_TRAFFIC_DATA_URL <- "https://www.data.gouv.fr/fr/datasets/r/0c0a451e-983b-4f06-9627-b5ff1bccd2fc" 
+AIR_TRAFFIC_DATA_URL <- "https://www.data.gouv.fr/fr/datasets/r/0c0a451e-983b-4f06-9627-b5ff1bccd2fc"
 
 air_traffic_df <- read.csv2(AIR_TRAFFIC_DATA_URL)
 ```
@@ -365,14 +361,15 @@ air_traffic_df <- read.csv2(AIR_TRAFFIC_DATA_URL)
 #| output: true
 #| df-print: kable
 
-air_traffic_df_to_print <- air_traffic_df |> head(6)
+air_traffic_df_to_print <- air_traffic_df
 
 kableExtra::kbl(air_traffic_df_to_print,
-              "markdown",
-              escape = FALSE,
-              booktabs = TRUE) |>
-  kableExtra::kable_styling(bootstrap_options = c("striped", "hover", "condensed", "responsive"))
-
+  "html",
+  escape = FALSE,
+  booktabs = TRUE
+) |>
+  kableExtra::kable_styling(bootstrap_options = c("striped", "hover", "condensed", "responsive")) |>
+  kableExtra::scroll_box(width = "100%", height = "350px")
 ``` 
 
 </details>
@@ -401,7 +398,7 @@ get_air_traffic_between_cities <- function(city1, city2, data) {
     ) |>
     dplyr::summarise(traffic = sum(LSN_DIST * LSN_PAX_loc)) |> # calcul du PKT
     dplyr::pull(traffic)
-  
+
   return(as.numeric(total_traffic))
 }
 ```
@@ -414,7 +411,6 @@ get_air_traffic_between_cities <- function(city1, city2, data) {
 #| code-overflow: scroll
 
 get_air_traffic_between_cities("Paris", "Toulouse", air_traffic_df)
-
 ```
 
 5. Sommer le trafic aérien pour chaque couple de villes reliées par un temps de trajet inférieur à 4h30
@@ -434,7 +430,7 @@ extract_city_name <- function(station) {
   sapply(station, function(x) strsplit(x, "-")[[1]][1])
 }
 
-# Extraire les paires de villes 
+# Extraire les paires de villes
 city_pairs <- lapply(under_threshold_routes, extract_city_name)
 
 under_threshold_air_traffic <- 0
@@ -444,7 +440,6 @@ for (pair in city_pairs) {
   air_traffic <- get_air_traffic_between_cities(pair[1], pair[2], air_traffic_df)
   under_threshold_air_traffic <- under_threshold_air_traffic + air_traffic
 }
-
 ```
 
 

@@ -63,8 +63,6 @@ STADIA_MAPS_API_KEY <- secrets$stadiaMaps$API_KEY
 STYLE <- "outdoors"
 
 TILES_URL <- sprintf("https://tiles.stadiamaps.com/tiles/%s/{z}/{x}/{y}{r}.png?api_key=%s", STYLE, STADIA_MAPS_API_KEY)
-
-
 ``` 
 
 5. Créer un dataframe avec tous les éléments pour cartographier les émissions sur les lignes repérées (les noms, les latitudes et les longitudes des villes de départ et d'arrivée, et les émissions de CO2 des lignes associées)
@@ -82,14 +80,14 @@ emission_by_route_list <- list()
 for (pair in city_pairs) {
   coordinates <- lapply(names(pair), get_station_coordinates, data = stations_data, verbose = FALSE)
   emissions <- get_air_traffic_between_cities(pair[1], pair[2], air_traffic_df) * GCO2_PER_PKT / 1000000
-  
+
   # Ajouter les données à la liste
   emission_by_route_list[[length(emission_by_route_list) + 1]] <- list(
-    city1 = pair[1],  
+    city1 = pair[1],
     city2 = pair[2],
-    lat1 = coordinates[[1]][1], 
+    lat1 = coordinates[[1]][1],
     lng1 = coordinates[[1]][2],
-    lat2 = coordinates[[2]][1], 
+    lat2 = coordinates[[2]][1],
     lng2 = coordinates[[2]][2],
     emissions = emissions
   )
@@ -108,11 +106,11 @@ emission_by_route_df <- dplyr::bind_rows(emission_by_route_list)
 #| df-print: kable
 
 kableExtra::kbl(emission_by_route_df,
-              "markdown",
-              escape = FALSE,
-              booktabs = TRUE) |>
+  "markdown",
+  escape = FALSE,
+  booktabs = TRUE
+) |>
   kableExtra::kable_styling(bootstrap_options = c("striped", "hover", "condensed", "responsive"))
-
 ``` 
 
 </details>
@@ -125,7 +123,7 @@ kableExtra::kbl(emission_by_route_df,
 #| code-overflow: scroll
 
 map <- leaflet::leaflet() |>
-  leaflet::addTiles(urlTemplate = TILES_URL) 
+  leaflet::addTiles(urlTemplate = TILES_URL)
 ```
 
 7. Faire une boucle pour ajouter toutes les lignes repérées à la carte avec la fonction *addPolylines* de `leaflet` :
@@ -143,9 +141,9 @@ for (i in 1:nrow(emission_by_route_df)) {
   # Définir les options par défaut pour les lignes
   lat_vector <- c(emission_by_route_df$lat1[i], emission_by_route_df$lat2[i])
   lng_vector <- c(emission_by_route_df$lng1[i], emission_by_route_df$lng2[i])
-  color <- "black"  # couleur par défaut
+  color <- "black" # couleur par défaut
   opacity <- 0.5
-  weight <- 1  # poids par défaut
+  weight <- 1 # poids par défaut
 
   # Si les émissions sont supérieures à zéro, ajuster la couleur et le poids
   if (emission_by_route_df$emissions[i] > 0) {
@@ -157,7 +155,6 @@ for (i in 1:nrow(emission_by_route_df)) {
   map <- map |>
     leaflet::addPolylines(lat = lat_vector, lng = lng_vector, color = color, opacity = opacity, weight = weight)
 }
-
 ```
 
 8. Faire une boucle pour ajouter toutes les villes à la carte avec la fonction *addCircleMarkers* de `leaflet`.
@@ -175,7 +172,7 @@ custom_label_options <- leaflet::labelOptions(noHide = TRUE, style = list("backg
 
 # Fonction pour ajouter des marqueurs circulaires
 add_circle_marker <- function(map, lat, lng, city, label_options) {
-  map |> 
+  map |>
     leaflet::addCircleMarkers(
       lat = lat,
       lng = lng,
@@ -191,7 +188,6 @@ for (i in 1:nrow(emission_by_route_df)) {
   map <- add_circle_marker(map, emission_by_route_df$lat1[i], emission_by_route_df$lng1[i], emission_by_route_df$city1[i], custom_label_options)
   map <- add_circle_marker(map, emission_by_route_df$lat2[i], emission_by_route_df$lng2[i], emission_by_route_df$city2[i], custom_label_options)
 }
-
 ```
 
 9. Afficher la carte

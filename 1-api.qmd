@@ -134,9 +134,11 @@ request_body <- '
 #| code-summary: Cliquer pour voir la réponse
 #| code-overflow: scroll
 
-headers <- httr::add_headers("Content-Type" = "application/json",
-                             "X-Application-Id" = X_API_ID,
-                             "X-Api-Key" = X_API_KEY)
+headers <- httr::add_headers(
+  "Content-Type" = "application/json",
+  "X-Application-Id" = X_API_ID,
+  "X-Api-Key" = X_API_KEY
+)
 ```
 
 8. Il est dès à présent possible d'envoyer une requête. On va utiliser ici la méthode POST, notamment car on a besoin d'une authentification. Pour aller un peu plus loin sur les différences entre les méthodes **GET** et **POST**, vous pouvez regarder ce [post](https://www.ionos.fr/digitalguide/sites-internet/developpement-web/get-vs-post/).
@@ -166,7 +168,7 @@ if (httr::status_code(response) == 200) {
   print(content)
 } else {
   # Affichage d'un message d'erreur si le code de la réponse n'est pas 200
-    print(sprintf("Une erreur est survenue. Code de la réponse : %d", httr::status_code(response)))
+  print(sprintf("Une erreur est survenue. Code de la réponse : %d", httr::status_code(response)))
 }
 ```
 
@@ -179,26 +181,29 @@ if (httr::status_code(response) == 200) {
 
 get_travel_time_api_response <- function(api_url, request_body) {
   # On prépare les headers
-  headers <- httr::add_headers("Content-Type" = "application/json",
-                                "X-Application-Id" = X_API_ID,
-                                "X-Api-Key" = X_API_KEY)
+  headers <- httr::add_headers(
+    "Content-Type" = "application/json",
+    "X-Application-Id" = X_API_ID,
+    "X-Api-Key" = X_API_KEY
+  )
   ## On envoie la requête avec les headers spécifiés
   response <- httr::POST(api_url, body = request_body, encode = "json", headers)
 
   # On vérifie s'il y a eu une erreur
   if (!httr::http_error(response)) {
-    return(list("Content" = httr::content(response, as = "parsed"), 
-                "Status_code" = httr::status_code(response)
-                )
-          )
+    return(list(
+      "Content" = httr::content(response, as = "parsed"),
+      "Status_code" = httr::status_code(response)
+    ))
   } else {
     # On affiche une message d'avertissement lorsque la requête n'a rien renvoyé
     warning("Failed to retrieve data: ", httr::http_status(response)$message)
-    return(list("Content" = NA, 
-                "Status_code" = httr::status_code(response)))
+    return(list(
+      "Content" = NA,
+      "Status_code" = httr::status_code(response)
+    ))
   }
 }
-
 ```
 
 11. Vérifier que votre fonction marche bien en utilisant la même requête que lors de la question 8 et comparez les réponses.
@@ -209,7 +214,6 @@ get_travel_time_api_response <- function(api_url, request_body) {
 #| code-overflow: scroll
 
 response_from_function <- get_travel_time_api_response(ROUTES_API_URL, request_body)
-
 ```
 
 12. Explorer attentivement la réponse puis affecter la liste des descriptions des itinéraires trouvés à une variable `list_itinerary` (liste nommée *properties* dans le JSON).
