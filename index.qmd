@@ -5,11 +5,7 @@ author:
 - name: Thomas Mallet
   email: thomas.mallet@aviation-civile.gouv.fr
   affiliations: 
-<<<<<<< HEAD
       - name: "[DGAC](https://www.ecologie.gouv.fr/direction-generale-laviation-civile-dgac-0)"
-=======
-      - name: "[DGAC](https://droits-passagers-aeriens.aviation-civile.gouv.fr/public/qui-sommes-nous)"
->>>>>>> a2a0c556d9dbbf5da73e723fec7794a855f9e33b
 - name: Enzo Pezzali
   email: enzo.pezzali@aviation-civile.gouv.fr
   affiliations: 
