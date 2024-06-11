@@ -17,13 +17,13 @@ Cette dernière partie du sujet consiste à visualiser les émissions de CO2 pr�
 
 
 ::: {.callout-tip collapse="false" icon=false}
-## `<i class="bi bi-book"></i>`{=html} Exercice 4 : Visualiser des données géographiques
+## `<i class="bi bi-book"></i>`{=html} Exercice 5 : Visualiser des données géographiques
 
 1. De la même manière que pour TravelTime, il est nécessaire de se créer un compte sur [Stadia Maps](https://client.stadiamaps.com/signup/?utm_content=top_nav_signup&utm_source=marketing_site) afin d'avoir accès à leur API. 
 
 2. Une fois que votre compte est créé et vérifié votre compte, créez une *property* et nommez la *"funathon"*.
 
-3. Cliquer sur *Add API Key*, puis la copier dans lz fichier `secrets.yaml` créé dans lors de l'exercice 1.
+3. Cliquer sur *Add API Key*, puis la copier dans le fichier `secrets.yaml` créé dans lors de l'exercice 1.
 
 
    ```{.yaml filename="secrets.yaml"}

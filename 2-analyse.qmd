@@ -453,7 +453,7 @@ for (pair in city_pairs) {
 GCO2_PER_PKT <- 80
 
 # On estime les émissions de CO2 en tCO2éq
-cat(sprintf("En 2019, environ %.2f gCO2éq aurait pu être évités", under_threshold_air_traffic * GCO2_PER_PKT / 1000000))
+cat(sprintf("En 2019, environ %.2f tCO2éq aurait pu être évités", under_threshold_air_traffic * GCO2_PER_PKT / 1000000))
 ```
 
 :::

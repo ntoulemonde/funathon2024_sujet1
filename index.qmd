@@ -5,16 +5,15 @@ author:
 - name: Thomas Mallet
   email: thomas.mallet@aviation-civile.gouv.fr
   affiliations: 
-      - name: "[DGAC](https://droits-passagers-aeriens.aviation-civile.gouv.fr/public/qui-sommes-nous)"
-- name: Enzo Pezzaliet
+      - name: "[DGAC](https://www.ecologie.gouv.fr/direction-generale-laviation-civile-dgac-0)"
+- name: Enzo Pezzali
   email: enzo.pezzali@aviation-civile.gouv.fr
   affiliations: 
-      - name: "[DGAC](https://droits-passagers-aeriens.aviation-civile.gouv.fr/public/qui-sommes-nous)"
-
+      - name: "[DGAC](https://www.ecologie.gouv.fr/direction-generale-laviation-civile-dgac-0)"
 - name: Thomas Lechalupe
   email: thomas.lechalupe@aviation-civile.gouv.fr
   affiliations:
-      - name: "[DGAC](https://droits-passagers-aeriens.aviation-civile.gouv.fr/public/qui-sommes-nous)"
+      - name: "[DGAC](https://www.ecologie.gouv.fr/direction-generale-laviation-civile-dgac-0)"
 format:
   html:
     number-sections: true
@@ -48,77 +47,72 @@ En travaillant sur ce sujet vous apprendrez à :
 
 Si vous disposez d'un compte sur le [SSPcloud](https://www.sspcloud.fr/), la méthode recommandée pour se lancer dans ce tutoriel est de cliquer sur le bouton suivant **A FAIRE**
 
-Si vous avez utilisé le lien de lancement rapide mis à disposition sur la page [inseefrlab.github.io/funathon2024/](https://inseefrlab.github.io/funathon2024/) ou ci-dessus,  vous pouvez sauter l'étape de récupération du modèle de projet avec `Git`, cela a été fait automatiquement lors de la création de votre environnement `RStudio`. 
+Si vous avez utilisé le lien de lancement rapide mis à disposition sur la page [inseefrlab.github.io/funathon2024/](https://inseefrlab.github.io/funathon2024/) ou ci-dessus, vous pouvez sauter l'étape de récupération du modèle de projet avec `Git`, cela a été fait automatiquement lors de la création de votre environnement `RStudio`.
 
 ::: {.callout-note collapse="true"}
 ## Récupérer le projet si vous n'avez pas utilisé le bouton proposé
 
-:::: {.panel-tabset}
+::: panel-tabset
 ## Interface graphique
 
-La fiche `utilitR` sur l'[utilisation de `Git`](https://book.utilitr.org/03_Fiches_thematiques/Fiche_git_utilisation.html#recuperer-url) explicite la démarche générale pour récupérer du code grâce à `Git`. Il est recommandé de lire celle-ci si vous n'êtes pas familier de `Git`. 
+La fiche `utilitR` sur l'[utilisation de `Git`](https://book.utilitr.org/03_Fiches_thematiques/Fiche_git_utilisation.html#recuperer-url) explicite la démarche générale pour récupérer du code grâce à `Git`. Il est recommandé de lire celle-ci si vous n'êtes pas familier de `Git`.
 
 Les étapes suivantes permettront de récupérer le projet:
 
-- 1️⃣ En premier lieu, dans `RStudio`, créer un nouveau projet et sélectionner `Version Control`. 
+-   1️⃣ En premier lieu, dans `RStudio`, créer un nouveau projet et sélectionner `Version Control`.
 
 ![](https://book.utilitr.org/pics_resized/git/create_project_1.png)
 
-- 2️⃣ Choisir `Git`, ce qui devrait ouvrir une fenêtre similaire à celle ci-dessous :
+-   2️⃣ Choisir `Git`, ce qui devrait ouvrir une fenêtre similaire à celle ci-dessous :
 
 ![](https://book.utilitr.org/pics_resized/git/create_project_2.png)
 
-- 3️⃣ Dans la fenêtre `Repository URL`, copier `{.r}https://github.com/inseefrlab/funathon2024_sujet1.git` laisser les valeurs par défaut qui viennent ensuite et créer le projet. 
-
+-   3️⃣ Dans la fenêtre `Repository URL`, copier `{.r}https://github.com/inseefrlab/funathon2024_sujet1.git` laisser les valeurs par défaut qui viennent ensuite et créer le projet.
 
 ## Depuis le terminal
 
-Après avoir ouvert un terminal dans `RStudio`, exécuter 
+Après avoir ouvert un terminal dans `RStudio`, exécuter
 
-```bash
+``` bash
 git clone https://github.com/inseefrlab/funathon2024_sujet1.git
 ```
 
-puis, dans l'explorateur de fichiers (fenêtre en bas à droite), cliquer sur le fichier `RTraffic.Rproj` pour ouvrir le projet. 
-::::
-
+puis, dans l'explorateur de fichiers (fenêtre en bas à droite), cliquer sur le fichier `RTraffic.Rproj` pour ouvrir le projet.
+:::
 :::
 
-Le projet récupéré comporte de nombreux fichiers. Nous allons progressivement les découvrir dans ce tutoriel. Pour le moment, concentrons nous sur le fichier `renv.lock`.Ce fichier correspond à la liste des _packages_ nécessaires pour reproduire l'environnement. Il a été généré automatiquement grâce à un écosystème `renv` particulièrement adapté pour assurer la reproductibilité de projets `R` (voir la suite). 
+Le projet récupéré comporte de nombreux fichiers. Nous allons progressivement les découvrir dans ce tutoriel. Pour le moment, concentrons nous sur le fichier `renv.lock`.Ce fichier correspond à la liste des *packages* nécessaires pour reproduire l'environnement. Il a été généré automatiquement grâce à un écosystème `renv` particulièrement adapté pour assurer la reproductibilité de projets `R` (voir la suite).
 
-
-## Installer les _packages_ nécessaires pour ce tutoriel
+## Installer les *packages* nécessaires pour ce tutoriel
 
 ### Principe
 
-Pour progresser dans ce tutoriel, un certain nombre de _packages_ doivent être installés. Sans eux, même avec le code de l'application, vous ne serez pas en mesure de reproduire celle-ci. 
+Pour progresser dans ce tutoriel, un certain nombre de *packages* doivent être installés. Sans eux, même avec le code de l'application, vous ne serez pas en mesure de reproduire celle-ci.
 
-Les bonnes pratiques pour la gestion de  l'environnement suggèrent de lister l'intégralité des packages et leur versions associées ce que permet de faire automatiquement `renv`. Grâce à cette liste, d'autres personnes pourront reproduire l'application si elles disposent des mêmes _inputs_ (le code, les données...). 
+Les bonnes pratiques pour la gestion de l'environnement suggèrent de lister l'intégralité des packages et leur versions associées ce que permet de faire automatiquement `renv`. Grâce à cette liste, d'autres personnes pourront reproduire l'application si elles disposent des mêmes *inputs* (le code, les données...).
 
 En effet, il est important de voir l'application comme le résultat de la combinaison de plusieurs ingrédients. Dans notre cas, nous en avons trois:
 
-* Du code `R` : celui-ci a été récupéré par le biais de `Git` via `Github`
-* Des éléments de configuration :
-    + le fichier `renv.lock` (`R`) qui permettra de reconstruire notre environnement à l'identique grâce à des outils adaptés[^generation]
-    + le fichier `config.yaml` qui contiendra des informations pour pouvoir se connecter à l'API.
-* Des données : nous évoquerons celles-ci lors de la prochaine partie.
+-   Du code `R` : celui-ci a été récupéré par le biais de `Git` via `Github`
+-   Des éléments de configuration :
+    -   le fichier `renv.lock` (`R`) qui permettra de reconstruire notre environnement à l'identique grâce à des outils adaptés[^1]
+    -   le fichier `secrets.yaml` qui contiendra des informations pour pouvoir se connecter à l'API.
+-   Des données : nous évoquerons celles-ci lors de la prochaine partie.
 
+[^1]: Ces fichiers ne sont pas générés manuellement. Ce sont des outils adaptés (`renv` pour `R`) qui font ce travail de versionnage de l'environnement.
 
 ![Illustration du principe de séparation du code, des données et de la configuration](img/environment.png)
 
-De manière générale, c'est une bonne pratique de structurer son projet comme une combinaison de ces facteurs. Cela vous amènera à faire des projets plus reproductible mais aussi à la structure plus lisible. 
+De manière générale, c'est une bonne pratique de structurer son projet comme une combinaison de ces facteurs. Cela vous amènera à faire des projets plus reproductible mais aussi à la structure plus lisible.
 
 Pour les utilisateurs de `R`, la [formation de l'Insee aux bonnes pratiques](https://inseefrlab.github.io/formation-bonnes-pratiques-git-R/) consacre une partie aux environnements reproductibles avec `renv`. N'hésitez pas à aller regarder la documentation de [renv](https://rstudio.github.io/renv/articles/renv.html)
-
-[^generation]: Ces fichiers ne sont pas générés manuellement. Ce sont des outils adaptés (`renv` pour `R`) qui font ce travail de versionnage de l'environnement. 
 
 ### Créer l'environnement
 
 L'intérêt d'utiliser `renv` est que recréer l'environnement nécessaire au bon fonctionnement de l'application est très simple avec la commande:
 
-```r
+``` r
 renv::restore()
 ```
 
-Il est tout à fait possible, ensuite, d'installer des _packages_ supplémentaires par le biais de `install.packages`. L'environnement proposé par notre fichier `renv.lock` est le minimum requis pour reproduire l'application mais ce n'est pas un environnement figé. Si vous ajoutez des _packages_ utiles pour votre application, avant la phase de mise en production, n'oubliez pas de faire `renv::snapshot()` pour mettre à jour le fichier `renv.lock`. 
-Maintenant que nous disposons d'un environnement fonctionnel, nous pouvons avancer sur la conception du projet. La première étape est d'explorer les jeux de données que nous utiliserons dans l'application.
+Il est tout à fait possible, ensuite, d'installer des *packages* supplémentaires par le biais de `install.packages`. L'environnement proposé par notre fichier `renv.lock` est le minimum requis pour reproduire l'application mais ce n'est pas un environnement figé. Si vous ajoutez des *packages* utiles pour votre application, avant la phase de mise en production, n'oubliez pas de faire `renv::snapshot()` pour mettre à jour le fichier `renv.lock`. Maintenant que nous disposons d'un environnement fonctionnel, nous pouvons avancer sur la conception du projet. La première étape est d'explorer les jeux de données que nous utiliserons dans l'application.

@@ -7,14 +7,14 @@ format:
     number-sections: true
     css: style/custom_styles.css
 ---
- 
 
 La première partie du sujet consiste à interroger basiquement l'API de routage de TravelTime qui permet obtenir des données de temps de trajet entre deux points définis par leurs coordoonées géographiques.
 
 Nous allons tout d'abord vous présenter comment construire une requête pour communiquer avec l'API de [TravelTime](https://account.traveltime.com/) afin de récupérer les données de temps de trajet. Avant cela, il va falloir effectuer plusieurs étapes préliminaires.
 
-:::{.callout-note}
+::: callout-note
 ## Qu'est ce qu'une API ?
+
 Une API est une interface logicielle (Application Programming Interface) qui permet à des applications de communiquer entre elles. Ces interfaces utilisent en général des requêtes HTTP contenant des JSON pour envoyer et recevoir des données.
 :::
 
@@ -22,37 +22,37 @@ Tout d'abord, il est nécessaire de créer un compte sur [TravelTime](https://ac
 
 Une fois que votre compte est créé, lorsque vous vous dirigez vers l'onglet `Dashboard` vous devriez avoir accès à votre ID et votre clé pour communiquer avec l'API, nous allons les stocker dans une fichier `.yaml` Ces informations sont personnelles et ne doivent pas être partagées, et encore moins être mises sur Github.
 
-:::{.callout-note}
+::: callout-note
 ## Qu'est ce qu'un fichier yaml ?
+
 C'est un format de fichier simplifié qui permet de stocker des données structurées à la manière d'un fomart CSV, JSON ou XML. Il est souvent utilisé pour stocker des configurations de programme.
 :::
 
-::: {.callout-tip collapse="false" icon=false}
-## `<i class="bi bi-book"></i>`{=html} Exercice 1 : Se familiariser avec l'API de TravelTime
+::: {.callout-tip collapse="false" icon="false"}
+## <i class="bi bi-book"></i> Exercice 1 : Se familiariser avec l'API de TravelTime
 
-1. Créer un compte sur [TravelTime](https://account.traveltime.com/) et récupérer les identifiants, les stocker dans un fichier `secrets.yaml` comme ci-dessous : 
+1.  Créer un compte sur [TravelTime](https://account.traveltime.com/) et récupérer les identifiants, les stocker dans un fichier `secrets.yaml` comme ci-dessous :
 
-   ```{.yaml filename="secrets.yaml"}
-   travelTime:
-     X_API_ID: "votre_id_api_ici"
-     X_API_KEY: "votre_clé_api_ici"
-   ```
+    ``` {.yaml filename="secrets.yaml"}
+    travelTime:
+      X_API_ID: "votre_id_api_ici"
+      X_API_KEY: "votre_clé_api_ici"
+    ```
 
-2. Afin de prévenir un malencontreux commit de ce fichier, le rajouter dans le `.gitignore` du projet afin qu'il ne soit pas *poussé* sur Github.
+2.  Afin de prévenir un malencontreux commit de ce fichier, le rajouter dans le `.gitignore` du projet afin qu'il ne soit pas *poussé* sur Github.
 
-   ```{.yaml filename=".gitignore"}
-   /.quarto/
-   /_site/
-   /*_cache/
-   secrets.yaml
-   ```
+    ``` {.yaml filename=".gitignore"}
+    /.quarto/
+    /_site/
+    /*_cache/
+    secrets.yaml
+    ```
 
-3. On va pouvoir tester l'API, mais avant toute chose, prendre le temps de jeter un coup d'oeil à la documentation de l'API ([ici](https://docs.traveltime.com/api/overview/introduction)). Se rendre sur le [*playground*](https://playground.traveltime.com/routes) de l'API pour se familiariser avec son fonctionnement.
+3.  On va pouvoir tester l'API, mais avant toute chose, prendre le temps de jeter un coup d'oeil à la documentation de l'API ([ici](https://docs.traveltime.com/api/overview/introduction)). Se rendre sur le [*playground*](https://playground.traveltime.com/routes) de l'API pour se familiariser avec son fonctionnement.
 
 Afin de vérifier que nous arrivons à communiquer avec l'API, nous allons effectuer la même requête présentée dans le playground directement dans notre console R.
- 
-4. Grâce au package `yaml`, importer le contenu du fichier `secrets.yaml` et stocker le contenu dans les variables `X_API_ID` et `X_API_KEY`.
 
+4.  Grâce au package `yaml`, importer le contenu du fichier `secrets.yaml` et stocker le contenu dans les variables `X_API_ID` et `X_API_KEY`.
 
 ```{r}
 #| code-fold: true
@@ -64,8 +64,7 @@ X_API_ID <- secrets$travelTime$X_API_ID
 X_API_KEY <- secrets$travelTime$X_API_KEY
 ```
 
-
-5. En lisant la documentation, ou en observant bien le *playgroud* trouver le *endpoint* de l'API de routage. Il s'agit de l'URL via lequel nous allons communiquer avec l'API. Stocker la dans la variable `ROUTES_API_URL`.
+5.  En lisant la documentation, ou en observant bien le *playgroud* trouver le *endpoint* de l'API de routage. Il s'agit de l'URL via lequel nous allons communiquer avec l'API. Stocker la dans la variable `ROUTES_API_URL`.
 
 ```{r}
 #| code-fold: true
@@ -75,9 +74,7 @@ X_API_KEY <- secrets$travelTime$X_API_KEY
 ROUTES_API_URL <- "https://api.traveltimeapp.com/v4/routes"
 ```
 
-
-6. Copier-coller la requête utilisée dans l'exemple du *playground*. Il s'agit du corps de la requête, généralement celui-ci est spécifié au format JSON.
-
+6.  Copier-coller la requête utilisée dans l'exemple du *playground*. Il s'agit du corps de la requête, généralement celui-ci est spécifié au format JSON.
 
 ```{r}
 #| code-fold: true
@@ -127,7 +124,7 @@ request_body <- '
 }'
 ```
 
-7. Avec le package `httr`, définir l'en-tête de la requête, celle-ci doit contenir l'ID et la clé afin que l'API puisse bien vous identifier et renvoyer une réponse. 
+7.  Avec le package `httr`, définir l'en-tête de la requête, celle-ci doit contenir l'ID et la clé afin que l'API puisse bien vous identifier et renvoyer une réponse.
 
 ```{r}
 #| code-fold: true
@@ -141,7 +138,7 @@ headers <- httr::add_headers(
 )
 ```
 
-8. Il est dès à présent possible d'envoyer une requête. On va utiliser ici la méthode POST, notamment car on a besoin d'une authentification. Pour aller un peu plus loin sur les différences entre les méthodes **GET** et **POST**, vous pouvez regarder ce [post](https://www.ionos.fr/digitalguide/sites-internet/developpement-web/get-vs-post/).
+8.  Il est dès à présent possible d'envoyer une requête. On va utiliser ici la méthode POST, notamment car on a besoin d'une authentification. Pour aller un peu plus loin sur les différences entre les méthodes **GET** et **POST**, vous pouvez regarder ce [post](https://www.ionos.fr/digitalguide/sites-internet/developpement-web/get-vs-post/).
 
 ```{r}
 #| code-fold: true
@@ -153,8 +150,7 @@ response <- httr::POST(ROUTES_API_URL, body = request_body, encode = "json", hea
 content <- httr::content(response)
 ```
 
-
-9. Vérifier que la requête a bien été reçue et traitée par l'API en regardant le code de retour, celui-ci doit être égal à 200. Si c'est bien le cas, regarder la réponse de l'API, elle devrait être similaire à ce qui est affiché ci-dessous.
+9.  Vérifier que la requête a bien été reçue et traitée par l'API en regardant le code de retour, celui-ci doit être égal à 200. Si c'est bien le cas, regarder la réponse de l'API, elle devrait être similaire à ce qui est affiché ci-dessous.
 
 ```{r}
 #| class-output: long-output
@@ -172,7 +168,7 @@ if (httr::status_code(response) == 200) {
 }
 ```
 
-10. Créer une fonction `get_travel_time_api_response()` qui renvoie la réponse de l'API de TravelTime pour un endpoint et une requête donnés. 
+10. Créer une fonction `get_travel_time_api_response()` qui renvoie la réponse de l'API de TravelTime pour un endpoint et une requête donnés.
 
 ```{r}
 #| code-fold: true
@@ -216,7 +212,7 @@ get_travel_time_api_response <- function(api_url, request_body) {
 response_from_function <- get_travel_time_api_response(ROUTES_API_URL, request_body)
 ```
 
-12. Explorer attentivement la réponse puis affecter la liste des descriptions des itinéraires trouvés à une variable `list_itinerary` (liste nommée *properties* dans le JSON).
+12. Explorer attentivement la réponse avec la fonction *View* puis affecter la liste des descriptions des itinéraires trouvés à une variable `list_itinerary` (liste nommée *properties* dans le JSON).
 
 ```{r}
 #| class-output: long-output
@@ -227,5 +223,4 @@ response_from_function <- get_travel_time_api_response(ROUTES_API_URL, request_b
 list_itinerary <- response_from_function[[1]]$results[[1]]$locations[[1]]$properties
 print(list_itinerary)
 ```
-
 :::
