@@ -6,7 +6,7 @@ author:
   email: thomas.mallet@aviation-civile.gouv.fr
   affiliations: 
       - name: "[DGAC](https://droits-passagers-aeriens.aviation-civile.gouv.fr/public/qui-sommes-nous)"
-- name: Enzo Pezzaliet
+- name: Enzo Pezzali
   email: enzo.pezzali@aviation-civile.gouv.fr
   affiliations: 
       - name: "[DGAC](https://droits-passagers-aeriens.aviation-civile.gouv.fr/public/qui-sommes-nous)"
