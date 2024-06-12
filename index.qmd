@@ -1,5 +1,5 @@
 ---
-title: "Visualiser les émissions de C02 liées à une mesure de restriction de liaison aérienne relativement à des durées de trajets ferroviaires"
+title: "Effets d'une mesure de restriction des trajets aériens sur les émissions de Co2"
 lang: fr-FR
 author: 
 - name: Thomas Mallet
@@ -25,7 +25,9 @@ editor_options:
 
 # Introduction {.unnumbered}
 
-Visualiser les émissions de C02 liées à une mesure de restriction de liaison aérienne relativement à des durées de trajets ferroviaires dans le cadre. L'étude portera sur les liaisons aériennes entre les 10 plus grandes agglomérations de la Métropole française. Elle permettra de quantifier et de localiser les émissions de C02 évitées avec des mesures hypothétiques d'interdictions de liaisons aériennes lorsqu'une alternative ferroviaire existe en moins de 3h30, 4h30, 5h30...
+Prévue par la loi Climat et Résilience de 2021, l'interdiction des lignes aériennes en cas d’alternative de moins de 2h30 en train est entrée en vigueur en 2023. Faut-il aller plus loin ? Quels seraient les bénéfices attendues d'une restriction plus large des trajets aériens intérieurs ? Afin d'éclairer ces questions, nous proposons avec ce sujet de visualiser les effets de nouvelles restrictions en termes d'émissions de CO2.
+
+L'étude portera sur les liaisons aériennes entre les 10 plus grandes agglomérations de la métropole française. Elle permettra de quantifier et de localiser les émissions de CO2 évitées avec des mesures hypothétiques d'interdictions de liaisons aériennes lorsqu'une alternative ferroviaire existe en moins de 3h30, 4h30, 5h30...
 
 En travaillant sur ce sujet vous apprendrez à :
 
@@ -45,8 +47,14 @@ En travaillant sur ce sujet vous apprendrez à :
 
 ## Récupérer le projet squelette avec `Git` {{< fa brands git-alt >}}
 
-Si vous disposez d'un compte sur le [SSPcloud](https://www.sspcloud.fr/), la méthode recommandée pour se lancer dans ce tutoriel est de cliquer sur le bouton suivant **A FAIRE**
+Si vous disposez d'un compte sur le [SSPcloud](https://www.sspcloud.fr/), la méthode recommandée pour se lancer dans ce tutoriel est de cliquer sur le bouton suivant
 
+```{=html}
+<center>
+<a href="https://datalab.sspcloud.fr/launcher/ide/rstudio?version=1.15.25&autoLaunch=true&networking.user.enabled=true&git.repository=«https%3A%2F%2Fgithub.com%2FInseeFrLab%2Ffunathon2024_sujet1.git»&onyxia.friendlyName=«funathon2024-sujet1»&kubernetes.role=«admin»" target="_blank" rel="noopener"><img src="https://img.shields.io/badge/SSP%20Cloud-Ouvrir_dans_RStudio-blue?logo=rstudio&amp;logoColor=blue" alt="Onyxia"></a>
+</center>
+<br>
+```
 Si vous avez utilisé le lien de lancement rapide mis à disposition sur la page [inseefrlab.github.io/funathon2024/](https://inseefrlab.github.io/funathon2024/) ou ci-dessus, vous pouvez sauter l'étape de récupération du modèle de projet avec `Git`, cela a été fait automatiquement lors de la création de votre environnement `RStudio`.
 
 ::: {.callout-note collapse="true"}
@@ -81,7 +89,23 @@ puis, dans l'explorateur de fichiers (fenêtre en bas à droite), cliquer sur le
 :::
 :::
 
-Le projet récupéré comporte de nombreux fichiers. Nous allons progressivement les découvrir dans ce tutoriel. Pour le moment, concentrons nous sur le fichier `renv.lock`.Ce fichier correspond à la liste des *packages* nécessaires pour reproduire l'environnement. Il a été généré automatiquement grâce à un écosystème `renv` particulièrement adapté pour assurer la reproductibilité de projets `R` (voir la suite).
+Le projet récupéré comporte de nombreux fichiers. Nous allons progressivement les découvrir dans ce tutoriel.
+
+## Se placer dans le projet `RStudio` associé au sujet
+
+### Principe
+
+A la racine du projet, on trouve notamment le fichier `funathon-sujet1.Rproj`. Il s'agit d'un fichier de projet `RStudio`. Lorsqu'on travaille sur du code `R` avec `RStudio`, il est généralement préférable de travailler dans le cadre d'un projet. Entre autres raisons, cela favorise la reproductibilité: lorsqu'on se situe dans un projet `RStudio`, tous les chemins peuvent être définis de manière *relative* (à la racine du projet) plutôt que de manière absolue (à la racine de la machine). Ainsi, le projet s'exécutera de la même manière qu'il soit exécuté depuis une machine Windows ou Linux par exemple, ou avec des noms d'utilisateur différents. Pour plus de détails sur les bénéfices d'utiliser les projets `RStudio` ou leur utilisation en pratique, n'hésitez pas à consulter la [fiche UtilitR](https://book.utilitr.org/03_Fiches_thematiques/Fiche_rprojects.html) dédiée.
+
+### Activer un projet `RStudio`
+
+Pour activer le projet `RStudio` associé au sujet, deux possibilités :
+
+- cliquer directement sur le fichier dans l'explorateur de fichiers (en bas à droite)
+
+- cliquer sur `File > Open Project` puis dérouler l'arborescence jusqu'à sélectrionner le fichier `.Rproj`
+
+Si cela a fonctionné, vous devriez voir le nom du projet (`funathon2024_sujet1`) dans le coin en à droite de `RStudio`.
 
 ## Installer les *packages* nécessaires pour ce tutoriel
 
@@ -109,7 +133,7 @@ Pour les utilisateurs de `R`, la [formation de l'Insee aux bonnes pratiques](htt
 
 ### Créer l'environnement
 
-L'intérêt d'utiliser `renv` est que recréer l'environnement nécessaire au bon fonctionnement de l'application est très simple avec la commande:
+L'intérêt d'utiliser `renv` est que recréer l'environnement nécessaire au bon fonctionnement de l'application est très simple: il suffit de lancer la commande suivante dans la console de `RStudio`
 
 ``` r
 renv::restore()
