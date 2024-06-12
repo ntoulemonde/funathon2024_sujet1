@@ -47,7 +47,7 @@ En travaillant sur ce sujet vous apprendrez à :
 
 ## Récupérer le projet squelette avec `Git` {{< fa brands git-alt >}}
 
-Si vous disposez d'un compte sur le [SSPcloud](https://www.sspcloud.fr/), la méthode recommandée pour se lancer dans ce tutoriel est de cliquer sur le bouton suivant
+Si vous disposez d'un compte sur le [SSP Cloud](https://www.sspcloud.fr/), la méthode recommandée pour se lancer dans ce tutoriel est de cliquer sur le bouton suivant
 
 ```{=html}
 <center>
