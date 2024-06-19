@@ -32,7 +32,7 @@ L'étude portera sur les liaisons aériennes entre les 10 plus grandes agglomér
 En travaillant sur ce sujet vous apprendrez à :
 
 -   Interroger l'API de [TravelTime](https://traveltime.com/) pour obtenir des données de temps de trajet
--   Utiliser des données de trafic aérien pour calculer des émissions de C02
+-   Utiliser des données de trafic aérien pour calculer des émissions de CO2
 -   Créer une carte interactive avec le package leaflet et des fonds de carte de [Stadia Maps](https://stadiamaps.com/)
 
 # Déroulement du sujet
