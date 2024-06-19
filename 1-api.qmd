@@ -109,7 +109,7 @@ request_body <- '
       "arrival_location_ids": [
         "point-to-1"
       ],
-      "departure_time": "2024-06-05T07:00:00.000Z",
+      "departure_time": "2024-06-26T18:00:00.000Z",
       "properties": [
         "travel_time",
         "route"
