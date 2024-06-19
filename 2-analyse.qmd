@@ -374,13 +374,18 @@ kableExtra::kbl(air_traffic_df_to_print,
 
 </details>
 
+::::{.callout-warning}
+## Attention aux données agrégées
+Le fichier Excel de documentation *series-asp-dgac-liste-v20231211b.xls* sur [data.gouv.fr](https://www.data.gouv.fr/ précise que les lignes aériennes de moins de 10 000 passagers équivalents pour un mois donné sont regroupées dans un groupement de lignes du mois associé, par exemple "ZZCC_MET_RAD" pour les liaisons métropolitaines radiales. Ainsi les données sur une ligne aérienne donnée ne sont pas toujours exhaustives.
+::::
+
 3. Créer une fonction qui renvoie le trafic total d'une liaison en 2019 en PKT (produit du nombre de passagers et de la distance parcourue) à partir des deux noms de villes (et non d'aéroport) en paramètre.
 
 ::::{.callout-tip}
-1. Les noms des principaux aéroports de métropole contiennent le nom de la ville qu'il dessert. 
-2. Le nombre de passagers correspond à la variable `LSN_PAX_loc`. 
+1. Utiliser le fichier Excel de documentation disponible sur [data.gouv.fr](https://www.data.gouv.fr/) pour identifier les colonnes utiles.
+2. Les noms des principaux aéroports de métropole contiennent le nom de la ville qu'il dessert.
 3. N'oubliez pas de prendre en compte le trafic aérien dans les deux sens.
-4. Paris qui possède 2 aéroports commerciaux
+4. Paris qui possède 2 aéroports commerciaux.
 ::::
 
 ```{r}
