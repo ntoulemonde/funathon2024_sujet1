@@ -129,7 +129,7 @@ L'objectif de cette partie est de récupérer le temps de transport entre deux g
   -   Lieu de départ : Variable (coords1)
   -   Lieu d'arrivée : Variable (coords2)
   -   Mode de transport : Transport public (bus, métro, tram, train)
-  -   Date et heure : 2024-06-05 à 18h00 UTC
+  -   Date et heure : 2024-06-26 à 18h00 UTC
   -   Flexibilité : 12h00
   -   Le reste des paramètres par défaut
 
@@ -175,7 +175,7 @@ get_routes_api_json <- function(coords1, coords2) {
         "arrival_location_ids": [
           "point-to-1"
         ],
-        "departure_time": "2024-06-05T18:00:00.000Z",
+        "departure_time": "2024-06-26T18:00:00.000Z",
         "properties": [
           "travel_time",
           "route"
