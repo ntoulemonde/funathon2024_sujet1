@@ -204,3 +204,6 @@ map
 ::: 
 
 
+```{ojs}
+import { button } from "@jeremiak/download-data-button"
+```
