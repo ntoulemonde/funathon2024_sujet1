@@ -205,5 +205,6 @@ map
 
 
 ```{ojs}
+//| echo: false
 import { button } from "@jeremiak/download-data-button"
 ```
