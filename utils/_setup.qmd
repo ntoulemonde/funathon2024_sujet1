@@ -222,3 +222,11 @@ for (pair in city_pairs) {
   under_threshold_air_traffic <- under_threshold_air_traffic + air_traffic
 }
 ```
+
+
+```{r}
+#| echo: false
+#| cache: false
+
+ojs_define(data = time_matrix)
+```

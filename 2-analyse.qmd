@@ -300,6 +300,10 @@ kableExtra::kbl(time_matrix,
 
 </details>
 
+```{ojs}
+import { button } from "@jeremiak/download-data-button"
+button(data, "time-matrix.csv")
+```
 
 5. Créer une liste avec les couples des gares reliées par un temps de trajet inférieur à 4h30
 
