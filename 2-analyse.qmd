@@ -301,7 +301,11 @@ kableExtra::kbl(time_matrix,
 </details>
 
 ```{ojs}
+//| echo: false
 import { button } from "@jeremiak/download-data-button"
+```
+
+```{ojs}
 button(data, "time-matrix.csv")
 ```
 
