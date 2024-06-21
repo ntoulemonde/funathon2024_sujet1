@@ -306,7 +306,18 @@ import { button } from "@jeremiak/download-data-button"
 ```
 
 ```{ojs}
-button(data, "time-matrix.csv")
+transformData = (data) => {
+  return data.map(item => {
+    const { _row, ...rest } = item;
+    const newItem = { Gare: _row, ...rest };
+    return newItem;
+  });
+};
+
+// Transform the data
+transformedData = transformData(transpose(data))
+
+button(transformedData, "time-matrix.csv")
 ```
 
 5. Créer une liste avec les couples des gares reliées par un temps de trajet inférieur à 4h30
