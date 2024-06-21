@@ -23,6 +23,29 @@ editor_options:
   chunk_output_type: console
 ---
 
+
+```{=html}
+<table>
+  <thead>
+    <tr>
+      <th>Niveau technique</th>
+      <th>Enjeux</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><span class="level-button level-debutant">Débutant</span></td>
+      <td>Suivre les consignes, tester les exemples, reprendre et comprendre les corrections. <b>Utiliser le fichier CSV mis à disposition si l'intéraction avec l'API est trop compliquée.</b>.</td>
+    </tr>
+    <tr>
+      <td><span class="level-button level-intermediaire">Intermédiaire</span></td>
+      <td>Chercher à faire les exercices et ne regarder les aides que si nécessaire. Se documenter sur l'utilisation de l'API de manière autonome.</td>
+    </tr>
+  </tbody>
+</table>
+```
+
+
 # Introduction {.unnumbered}
 
 Prévue par la loi Climat et Résilience de 2021, l'interdiction des lignes aériennes en cas d’alternative de moins de 2h30 en train est entrée en vigueur en 2023. Faut-il aller plus loin ? Quels seraient les bénéfices attendues d'une restriction plus large des trajets aériens intérieurs ? Afin d'éclairer ces questions, nous proposons avec ce sujet de visualiser les effets de nouvelles restrictions en termes d'émissions de CO2.
