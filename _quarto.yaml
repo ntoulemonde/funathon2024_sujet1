@@ -4,7 +4,7 @@ project:
     - "*.qmd"
     - "!utils/_setup.qmd"
 website:
-  title: "Funathon 2024 - Sujet 1"
+  title: "✈️"
   page-navigation: true
   description: "Visualiser les émissions de CO2 liées à une mesure de restriction de liaison aérienne relativement à des durées de trajets ferroviaires dans le cadre. L'étude portera sur les liaisons aériennes entre les 10 plus grandes agglomérations de la Métropole française. Elle permettra de quantifier et de localiser les émissions de CO2 évitées avec des mesures hypothétiques d'interdictions de liaisons aériennes lorsqu'une alternative ferroviaire existe en moins de 3h30, 4h30, 5h30..."
   site-url: "https://inseefrlab.github.io/funathon2024_sujet1/"
@@ -21,7 +21,6 @@ website:
 
   navbar:
     align: center
-    title: false
     collapse-below: lg
  
     right:
@@ -49,6 +48,6 @@ format:
     code-overflow: wrap
 
 execute: 
-  eval: true
+  eval: false
   cache: true
   warning: false

@@ -48,9 +48,9 @@ editor_options:
 
 # Introduction {.unnumbered}
 
-Prévue par la loi Climat et Résilience de 2021, l'interdiction des lignes aériennes en cas d’alternative de moins de 2h30 en train est entrée en vigueur en 2023. Faut-il aller plus loin ? Quels seraient les bénéfices attendues d'une restriction plus large des trajets aériens intérieurs ? Afin d'éclairer ces questions, nous proposons avec ce sujet de visualiser les effets de nouvelles restrictions en termes d'émissions de CO2.
+Prévue par la loi Climat et Résilience de 2021, l’interdiction des lignes aériennes lorsque des alternatives en train de moins de 2h30 sont disponibles est entrée en vigueur en 2023. Devrait-on aller plus loin ? Quels seraient les avantages d'une restriction plus étendue des vols intérieurs ? Pour éclairer ces questions, nous proposons d'examiner les effets potentiels de nouvelles restrictions sur les émissions de CO2.
 
-L'étude portera sur les liaisons aériennes entre les 10 plus grandes agglomérations de la métropole française. Elle permettra de quantifier et de localiser les émissions de CO2 évitées avec des mesures hypothétiques d'interdictions de liaisons aériennes lorsqu'une alternative ferroviaire existe en moins de 3h30, 4h30, 5h30...
+Cette étude se concentrera sur les liaisons aériennes entre les dix plus grandes agglomérations de la métropole française. Elle visera à quantifier et à localiser les émissions de CO2 évitées grâce à des interdictions hypothétiques de vols lorsqu'une alternative ferroviaire existe en moins de 3h30, 4h30, 5h30, etc.
 
 En travaillant sur ce sujet vous apprendrez à :
 
@@ -70,7 +70,7 @@ En travaillant sur ce sujet vous apprendrez à :
 
 ## Récupérer le projet squelette avec `Git` {{< fa brands git-alt >}}
 
-Si vous disposez d'un compte sur le [SSP Cloud](https://www.sspcloud.fr/), la méthode recommandée pour se lancer dans ce tutoriel est de cliquer sur le bouton suivant
+Si vous disposez d'un compte sur le [SSP Cloud](https://www.sspcloud.fr/), la méthode recommandée pour lancer ce tutoriel est de cliquer sur le bouton suivant :
 
 ```{=html}
 <center>
@@ -78,7 +78,8 @@ Si vous disposez d'un compte sur le [SSP Cloud](https://www.sspcloud.fr/), la m�
 </center>
 <br>
 ```
-Si vous avez utilisé le lien de lancement rapide mis à disposition sur la page [inseefrlab.github.io/funathon2024/](https://inseefrlab.github.io/funathon2024/) ou ci-dessus, vous pouvez sauter l'étape de récupération du modèle de projet avec `Git`, cela a été fait automatiquement lors de la création de votre environnement `RStudio`.
+
+Si vous utilisez effectivement ce lien de lancement rapide, vous pouvez sauter l'étape de récupération du modèle de projet avec `Git`, cela a été fait automatiquement lors de la création de votre environnement `RStudio`.
 
 ::: {.callout-note collapse="true"}
 ## Récupérer le projet si vous n'avez pas utilisé le bouton proposé
@@ -98,7 +99,7 @@ Les étapes suivantes permettront de récupérer le projet:
 
 ![](https://book.utilitr.org/pics_resized/git/create_project_2.png)
 
--   3️⃣ Dans la fenêtre `Repository URL`, copier `{.r}https://github.com/inseefrlab/funathon2024_sujet1.git` laisser les valeurs par défaut qui viennent ensuite et créer le projet.
+-   3️⃣ Dans la fenêtre `Repository URL`, copier `https://github.com/inseefrlab/funathon2024_sujet1.git` laisser les valeurs par défaut qui viennent ensuite et créer le projet.
 
 ## Depuis le terminal
 
@@ -118,7 +119,8 @@ Le projet récupéré comporte de nombreux fichiers. Nous allons progressivement
 
 ### Principe
 
-A la racine du projet, on trouve notamment le fichier `funathon-sujet1.Rproj`. Il s'agit d'un fichier de projet `RStudio`. Lorsqu'on travaille sur du code `R` avec `RStudio`, il est généralement préférable de travailler dans le cadre d'un projet. Entre autres raisons, cela favorise la reproductibilité: lorsqu'on se situe dans un projet `RStudio`, tous les chemins peuvent être définis de manière *relative* (à la racine du projet) plutôt que de manière absolue (à la racine de la machine). Ainsi, le projet s'exécutera de la même manière qu'il soit exécuté depuis une machine Windows ou Linux par exemple, ou avec des noms d'utilisateur différents. Pour plus de détails sur les bénéfices d'utiliser les projets `RStudio` ou leur utilisation en pratique, n'hésitez pas à consulter la [fiche UtilitR](https://book.utilitr.org/03_Fiches_thematiques/Fiche_rprojects.html) dédiée.
+A la racine du projet, on trouve notamment le fichier `funathon-sujet1.Rproj`. Il s'agit d'un fichier de projet `RStudio`. Lorsqu'on travaille sur du code `R` avec `RStudio`, il est généralement préférable de travailler dans le cadre d'un projet. Entre autres raisons, cela favorise la reproductibilité : lorsqu'on se situe dans un projet `RStudio`, tous les chemins peuvent être définis de manière *relative* (à la racine du projet) plutôt que de manière absolue (à la racine de la machine). Ainsi, le projet s'exécutera de la même manière qu'il soit exécuté depuis une machine Windows ou Linux par exemple, ou avec des noms d'utilisateur différents. Pour plus de détails sur les bénéfices d'utiliser les projets `RStudio` ou leur utilisation en pratique, n'hésitez pas à consulter la [fiche UtilitR](https://book.utilitr.org/03_Fiches_thematiques/Fiche_rprojects.html) dédiée.
+
 
 ### Activer un projet `RStudio`
 
@@ -128,7 +130,7 @@ Pour activer le projet `RStudio` associé au sujet, deux possibilités :
 
 - cliquer sur `File > Open Project` puis dérouler l'arborescence jusqu'à sélectrionner le fichier `.Rproj`
 
-Si cela a fonctionné, vous devriez voir le nom du projet (`funathon2024_sujet1`) dans le coin en à droite de `RStudio`.
+Si cela a fonctionné, vous devriez voir le nom du projet (`funathon2024_sujet1`) dans le coin en haut à droite de `RStudio`.
 
 ## Installer les *packages* nécessaires pour ce tutoriel
 
@@ -138,7 +140,7 @@ Pour progresser dans ce tutoriel, un certain nombre de *packages* doivent être 
 
 Les bonnes pratiques pour la gestion de l'environnement suggèrent de lister l'intégralité des packages et leur versions associées ce que permet de faire automatiquement `renv`. Grâce à cette liste, d'autres personnes pourront reproduire l'application si elles disposent des mêmes *inputs* (le code, les données...).
 
-En effet, il est important de voir l'application comme le résultat de la combinaison de plusieurs ingrédients. Dans notre cas, nous en avons trois:
+En effet, il est important de voir l'application comme le résultat de la combinaison de plusieurs ingrédients. Dans notre cas, nous en avons trois :
 
 -   Du code `R` : celui-ci a été récupéré par le biais de `Git` via `Github`
 -   Des éléments de configuration :
@@ -150,16 +152,16 @@ En effet, il est important de voir l'application comme le résultat de la combin
 
 ![Illustration du principe de séparation du code, des données et de la configuration](img/environment.png)
 
-De manière générale, c'est une bonne pratique de structurer son projet comme une combinaison de ces facteurs. Cela vous amènera à faire des projets plus reproductible mais aussi à la structure plus lisible.
+De manière générale, c'est une bonne pratique de structurer son projet comme une combinaison de ces facteurs. Cela vous amènera à faire des projets plus reproductibles mais aussi à la structure plus lisible.
 
 Pour les utilisateurs de `R`, la [formation de l'Insee aux bonnes pratiques](https://inseefrlab.github.io/formation-bonnes-pratiques-git-R/) consacre une partie aux environnements reproductibles avec `renv`. N'hésitez pas à aller regarder la documentation de [renv](https://rstudio.github.io/renv/articles/renv.html)
 
 ### Créer l'environnement
 
-L'intérêt d'utiliser `renv` est que recréer l'environnement nécessaire au bon fonctionnement de l'application est très simple: il suffit de lancer la commande suivante dans la console de `RStudio`
+L'intérêt d'utiliser `renv` réside dans la simplicité de recréer l'environnement nécessaire au bon fonctionnement de l'application : il suffit de lancer la commande suivante dans la console de `RStudio` :
 
 ``` r
 renv::restore()
 ```
 
-Il est tout à fait possible, ensuite, d'installer des *packages* supplémentaires par le biais de `install.packages`. L'environnement proposé par notre fichier `renv.lock` est le minimum requis pour reproduire l'application mais ce n'est pas un environnement figé. Si vous ajoutez des *packages* utiles pour votre application, avant la phase de mise en production, n'oubliez pas de faire `renv::snapshot()` pour mettre à jour le fichier `renv.lock`. Maintenant que nous disposons d'un environnement fonctionnel, nous pouvons avancer sur la conception du projet. La première étape est d'explorer les jeux de données que nous utiliserons dans l'application.
+Ensuite, il est tout à fait possible d'installer des *packages* supplémentaires via `install.packages`. L'environnement proposé par notre fichier `renv.lock` constitue le minimum requis pour reproduire l'application, mais il n'est pas figé. Si vous ajoutez des packages utiles pour votre application, n'oubliez pas d'exécuter `renv::snapshot()` avant la mise en production pour mettre à jour le fichier `renv.lock`. Maintenant que nous disposons d'un environnement fonctionnel, nous pouvons avancer sur la conception du projet. La première étape consiste à explorer les jeux de données que nous utiliserons dans l'application.
