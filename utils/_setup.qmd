@@ -228,5 +228,5 @@ for (pair in city_pairs) {
 #| echo: false
 #| cache: false
 
-ojs_define(data = time_matrix)
+ojs_define(data = as.data.frame(time_matrix))
 ```

@@ -10,7 +10,7 @@ format:
 
 La première partie du sujet consiste à interroger basiquement l'API de routage de TravelTime qui permet obtenir des données de temps de trajet entre deux points définis par leurs coordoonées géographiques.
 
-Nous allons tout d'abord vous présenter comment construire une requête pour communiquer avec l'API de [TravelTime](https://account.traveltime.com/) afin de récupérer les données de temps de trajet. Avant cela, il va falloir effectuer plusieurs étapes préliminaires.
+Nous allons tout d'abord présenter comment construire une requête pour communiquer avec l'API de [TravelTime](https://account.traveltime.com/) afin de récupérer les données de temps de trajet. Avant cela, il va falloir effectuer plusieurs étapes préliminaires.
 
 ::: callout-note
 ## Qu'est ce qu'une API ?
@@ -18,7 +18,12 @@ Nous allons tout d'abord vous présenter comment construire une requête pour co
 Une API est une interface logicielle (Application Programming Interface) qui permet à des applications de communiquer entre elles. Ces interfaces utilisent en général des requêtes HTTP contenant des JSON pour envoyer et recevoir des données.
 :::
 
-Tout d'abord, il est nécessaire de créer un compte sur [TravelTime](https://account.traveltime.com/) afin de pouvoir accéder à leur API grâce à un identifiant et un mot de passe. Si vous avez un compte Github, l'authentification via ce canal est plus simple.
+Tout d'abord, il est nécessaire de créer un compte sur [TravelTime](https://account.traveltime.com/) afin de pouvoir accéder à leur API grâce à un identifiant et un mot de passe. Si vous avez un compte Github, l'authentification via ce canal est plus simple. Autrement, il va falloir utiliser votre adresse email professionnelle et renseigner votre numéro de téléphone. Nous sommes conscient que cela peut constituer un frein pour certaines personnes, et si vous ne souhaitez pas vous inscrire sur cette API privée il sera tout de même possible de réaliser la visualisation des résultats grâce aux données issues de l'API mis à votre disposition.
+
+::: callout-warning
+Le mail de confirmation de l'API peut mettre plusieurs minutes avant d'arriver, notamment si vous êtes sur un poste avec un proxy et sécurisé.
+
+:::
 
 Une fois que votre compte est créé, lorsque vous vous dirigez vers l'onglet `Dashboard` vous devriez avoir accès à votre ID et votre clé pour communiquer avec l'API, nous allons les stocker dans une fichier `.yaml` Ces informations sont personnelles et ne doivent pas être partagées, et encore moins être mises sur Github.
 
@@ -44,7 +49,9 @@ C'est un format de fichier simplifié qui permet de stocker des données structu
     ``` {.yaml filename=".gitignore"}
     /.quarto/
     /_site/
+    /site_libs/
     /*_cache/
+    .Rproj.user
     secrets.yaml
     ```
 

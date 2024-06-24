@@ -303,9 +303,6 @@ kableExtra::kbl(time_matrix,
 ```{ojs}
 //| echo: false
 import { button } from "@jeremiak/download-data-button"
-```
-
-```{ojs}
 transformData = (data) => {
   return data.map(item => {
     const { _row, ...rest } = item;
@@ -317,6 +314,9 @@ transformData = (data) => {
 // Transform the data
 transformedData = transformData(transpose(data))
 
+```
+
+```{ojs}
 button(transformedData, "time-matrix.csv")
 ```
 
@@ -395,7 +395,7 @@ kableExtra::kbl(air_traffic_df_to_print,
 
 ::::{.callout-warning}
 ## Attention aux données agrégées
-Le fichier Excel de documentation *series-asp-dgac-liste-v20231211b.xls* sur [data.gouv.fr](https://www.data.gouv.fr/ précise que les lignes aériennes de moins de 10 000 passagers équivalents pour un mois donné sont regroupées dans un groupement de lignes du mois associé, par exemple "ZZCC_MET_RAD" pour les liaisons métropolitaines radiales. Ainsi les données sur une ligne aérienne donnée ne sont pas toujours exhaustives.
+Le fichier Excel de documentation *series-asp-dgac-liste-v20231211b.xls* sur [data.gouv.fr](https://www.data.gouv.fr/) précise que les lignes aériennes de moins de 10 000 passagers équivalents pour un mois donné sont regroupées dans un groupement de lignes du mois associé, par exemple "ZZCC_MET_RAD" pour les liaisons métropolitaines radiales. Ainsi les données sur une ligne aérienne donnée ne sont pas toujours exhaustives.
 ::::
 
 3. Créer une fonction qui renvoie le trafic total d'une liaison en 2019 en PKT (produit du nombre de passagers et de la distance parcourue) à partir des deux noms de villes (et non d'aéroport) en paramètre.
