@@ -35,7 +35,7 @@ editor_options:
   <tbody>
     <tr>
       <td><span class="level-button level-debutant">Débutant</span></td>
-      <td>Suivre les consignes, tester les exemples, reprendre et comprendre les corrections. <b>Utiliser le fichier CSV mis à disposition si l'intéraction avec l'API est trop compliquée.</b>.</td>
+      <td>Suivre les consignes, tester les exemples, reprendre et comprendre les corrections. <b>Utiliser le fichier CSV mis à disposition si l'intéraction avec l'API est trop compliquée.</b></td>
     </tr>
     <tr>
       <td><span class="level-button level-intermediaire">Intermédiaire</span></td>
