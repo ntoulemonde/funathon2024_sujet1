@@ -24,6 +24,6 @@ Concernant l'API de routage "routes" pour faire des itinéraires point à point 
 
 -   Elle ne permet pas de traverser de frontières.
 
-Voir playground de l'API de routage "routes" de TravelTime [ici](#0).
+Voir playground de l'API de routage "routes" de TravelTime [ici](https://playground.traveltime.com/routes).
 
-Voir test de *leaflet* [ici](#0).
+Voir test de *leaflet* [ici](https://inseefrlab.github.io/funathon2024_sujet1/3-dataviz.html).
