@@ -1,10 +1,12 @@
 # API Travel Time ----
 
-## Importing credientials 
+## Importing credentials 
 secrets <- yaml::read_yaml("secrets.yaml")
 X_API_ID <- secrets$travelTim$X_API_ID
 X_API_KEY <- secrets$travelTime$X_API_KEY
 
+# Generating the API request from latitude and longitude of departure and arrival. 
+# Date is updated to today, 9am by default. 
 generate_brequest <- function(    
     depart = c(50.6365654, 3.0635282), 
     arrival = c(48.8588897, 2.320041)
@@ -35,7 +37,7 @@ generate_brequest <- function(
         "arrival_location_ids": [
           "point-to-1"
         ],
-        "departure_time": "', lubridate::today(),'T06:00:00+02:00",
+        "departure_time": "', lubridate::today(),'T09:00:00+02:00",
         "properties": [
           "travel_time",
           "route"
@@ -82,7 +84,12 @@ get_travel_time_api_response <- function(
 
 response <- get_travel_time_api_response()
 
-# A list of all itineraries in the response
+# Getting the travel time of the first result
+first_itinerary_traveltime = lubridate::dseconds(
+  response[["results"]][[1]][["locations"]][[1]][["properties"]][[1]][["travel_time"]]
+)
+
+# If we want a list of all itineraries in the response
 list_itinerary = response[["results"]][[1]][["locations"]][[1]][["properties"]]
 
 #### !!!!!!!!!!! DOESNT WORK WITH NON DIRECT CONNECTION -- NEED TO CAPTURE THIS PART
