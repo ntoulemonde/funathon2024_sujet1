@@ -45,7 +45,7 @@ generate_brequest <- function(
         "range": {
           "enabled": true,
           "max_results": 5,
-          "width": 900
+          "width": 43200
         }
       }
     ]
