@@ -1,0 +1,40 @@
+{
+  "locations": [
+    {
+      "id": "point-from",
+      "coords": {
+        "lng": 3.0635282,
+        "lat": 50.6365654
+      }
+    },
+    {
+      "id": "point-to-1",
+      "coords": {
+        "lng": 2.320041,
+        "lat": 48.8588897
+      }
+    }
+  ],
+  "departure_searches": [
+    {
+      "id": "departure-search",
+      "transportation": {
+        "type": "train"
+      },
+      "departure_location_id": "point-from",
+      "arrival_location_ids": [
+        "point-to-1"
+      ],
+      "departure_time": "2025-08-20T09:00:00+02:00",
+      "properties": [
+        "travel_time",
+        "route"
+      ],
+      "range": {
+        "enabled": true,
+        "max_results": 5,
+        "width": 900
+      }
+    }
+  ]
+}
