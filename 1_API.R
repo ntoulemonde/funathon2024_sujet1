@@ -5,21 +5,71 @@ secrets <- yaml::read_yaml("secrets.yaml")
 X_API_ID <- secrets$travelTim$X_API_ID
 X_API_KEY <- secrets$travelTime$X_API_KEY
 
-## Toying with API ----
-# Endpoint
-ROUTES_API_URL <- "https://api.traveltimeapp.com/v4/routes"
-# storing the config headers
-my_headers <- httr::add_headers("Content-Type"= "application/json", 
-                                "X-Application-Id" = X_API_ID, 
-                                "X-Api-Key" = X_API_KEY)
-# Request stored in a dedicated file
-playground_request_file <- "playground_r.json"
+generate_brequest <- function(    
+    depart = c(50.6365654, 3.0635282), 
+    arrival = c(48.8588897, 2.320041)
+    ){
+  paste0('{
+    "locations": [
+      {
+        "id": "point-from",
+        "coords": {
+          "lng": ', depart[2], ',
+          "lat": ', depart[1], 
+         '}
+      },
+      {
+        "id": "point-to-1",
+        "coords": {
+          "lng": ', arrival[2], ',
+          "lat": ', arrival[1], '}
+      }
+    ],
+    "departure_searches": [
+      {
+        "id": "departure-search",
+        "transportation": {
+          "type": "train"
+        },
+        "departure_location_id": "point-from",
+        "arrival_location_ids": [
+          "point-to-1"
+        ],
+        "departure_time": "', lubridate::today(),'T06:00:00+02:00",
+        "properties": [
+          "travel_time",
+          "route"
+        ],
+        "range": {
+          "enabled": true,
+          "max_results": 5,
+          "width": 900
+        }
+      }
+    ]
+  }'
+  )
+}
 
-get_travel_time_api_response <- function(endpoint = ROUTES_API_URL, req_file = playground_request_file){
+# Function to retrieve train transport time from API
+get_travel_time_api_response <- function(
+    endpoint = "https://api.traveltimeapp.com/v4/routes",
+    depart = c(50.6365654, 3.0635282), 
+    arrival = c(48.8588897, 2.320041)
+){
+  
+  # storing the config headers
+  my_headers <- httr::add_headers("Content-Type"= "application/json", 
+                                  "X-Application-Id" = X_API_ID, 
+                                  "X-Api-Key" = X_API_KEY)
+  
+  # Generating the request
+  body_request = generate_brequest(depart, arrival)
+  
   # Calling API
   response <- httr::POST(endpoint,
                          config = my_headers, 
-                         body = httr::upload_file(req_file))
+                         body = body_request)
   # Checking received the good response
   if (response$status_code == 200) {
     # If reply is ok we get the travel time from the first response
@@ -34,6 +84,8 @@ response <- get_travel_time_api_response()
 
 # A list of all itineraries in the response
 list_itinerary = response[["results"]][[1]][["locations"]][[1]][["properties"]]
+
+#### !!!!!!!!!!! DOESNT WORK WITH NON DIRECT CONNECTION -- NEED TO CAPTURE THIS PART
 
 # Extracting travel time for the train part of the first itinerary
 list_itinerary[[1]][["route"]][["parts"]] |>
