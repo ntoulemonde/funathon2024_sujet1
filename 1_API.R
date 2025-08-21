@@ -5,6 +5,8 @@ secrets <- yaml::read_yaml("secrets.yaml")
 X_API_ID <- secrets$travelTim$X_API_ID
 X_API_KEY <- secrets$travelTime$X_API_KEY
 
+rm(secrets)
+
 # Generating the API request from latitude and longitude of departure and arrival. 
 # Date is updated to today, 9am by default. 
 generate_brequest <- function(    
@@ -82,26 +84,27 @@ get_travel_time_api_response <- function(
   return(res)
 }
 
-response <- get_travel_time_api_response()
-
-# Getting the travel time of the first result
-first_itinerary_traveltime = lubridate::dseconds(
-  response[["results"]][[1]][["locations"]][[1]][["properties"]][[1]][["travel_time"]]
-)
-
-# If we want a list of all itineraries in the response
-list_itinerary = response[["results"]][[1]][["locations"]][[1]][["properties"]]
-
-#### !!!!!!!!!!! DOESNT WORK WITH NON DIRECT CONNECTION -- NEED TO CAPTURE THIS PART
-
-# Extracting travel time for the train part of the first itinerary
-list_itinerary[[1]][["route"]][["parts"]] |>
-  # spreading to filter to retain only the train parts of the itinerary
-  tidyjson::spread_all() |>
-  dplyr::filter(mode == 'train') |>
-  # Keeping only valuable info
-  dplyr::select(departure_station, departs_at, arrival_station, arrives_at, travel_time) |>
-  # Storing travel_time as duration 
-  dplyr::mutate(travel_time = lubridate::dseconds(travel_time)) |>
-  # Turning into a df
-  dplyr::as_tibble()
+# # Test
+# response <- get_travel_time_api_response()
+# 
+# # Getting the travel time of the first result
+# first_itinerary_traveltime = lubridate::dseconds(
+#   response[["results"]][[1]][["locations"]][[1]][["properties"]][[1]][["travel_time"]]
+# )
+# 
+# # If we want a list of all itineraries in the response
+# list_itinerary = response[["results"]][[1]][["locations"]][[1]][["properties"]]
+# 
+# #### !!!!!!!!!!! DOESNT WORK WITH NON DIRECT CONNECTION -- NEED TO CAPTURE THIS PART
+# 
+# # Extracting travel time for the train part of the first itinerary
+# list_itinerary[[1]][["route"]][["parts"]] |>
+#   # spreading to filter to retain only the train parts of the itinerary
+#   tidyjson::spread_all() |>
+#   dplyr::filter(mode == 'train') |>
+#   # Keeping only valuable info
+#   dplyr::select(departure_station, departs_at, arrival_station, arrives_at, travel_time) |>
+#   # Storing travel_time as duration 
+#   dplyr::mutate(travel_time = lubridate::dseconds(travel_time)) |>
+#   # Turning into a df
+#   dplyr::as_tibble()
